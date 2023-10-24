@@ -1,3 +1,7 @@
 data
-auxilary/__pycache__
+auxilary/__pycache__/.
 catboost_info
+temp
+auxiliary/__pycache__/eda_functions.cpython-39.pyc
+auxiliary/__pycache__/lists.cpython-39.pyc
+auxiliary/__pycache__/transformers.cpython-39.pyc
