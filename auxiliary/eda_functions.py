@@ -123,3 +123,63 @@ def test_with_catboost_crossval(
     outputs["scores"] = scores
     outputs["features"] = initial_importances
     return outputs
+
+
+def make_aggregations(
+    original_df,
+    df_to_agg,
+    columns,
+    id,
+    aggregations=["mean", "sum", "min", "max", "std", "mode"],
+    join_suffix=None,
+):
+    for col in columns:
+        if "mean" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(pl.col(col).mean().suffix("_mean")),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+        if "sum" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(pl.col(col).sum().suffix("_sum")),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+
+        if "min" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(pl.col(col).min().suffix("_min")),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+
+        if "max" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(pl.col(col).max().suffix("_max")),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+
+        if "std" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(pl.col(col).std().suffix("_std")),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+
+        if "mode" in aggregations:
+            original_df = original_df.join(
+                df_to_agg.group_by(pl.col(id)).agg(
+                    pl.col(col).mode().first().suffix("_mode")
+                ),
+                on=id,
+                how="left",
+                suffix=join_suffix,
+            )
+    return original_df
