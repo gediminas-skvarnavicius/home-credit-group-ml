@@ -3,6 +3,8 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import classification_report
 from catboost import CatBoostClassifier
 from sklearn.model_selection import StratifiedKFold
+from itertools import combinations
+import numpy as np
 
 
 def test_with_catboost(
@@ -183,3 +185,76 @@ def make_aggregations(
                 suffix=join_suffix,
             )
     return original_df
+
+
+import scipy.stats as stats
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+
+def calc_vif(X):
+    # Calculating VIF
+    vif = pl.DataFrame()
+    vif = vif.with_columns(pl.Series(X.columns).alias("variables"))
+    vif = vif.with_columns(
+        pl.Series(
+            [variance_inflation_factor(X.to_numpy(), i) for i in range(X.shape[1])]
+        ).alias("VIF")
+    )
+
+    return vif.sort("VIF", descending=True)
+
+
+def missing_values_by_feature(data):
+    missing = pl.DataFrame(
+        {
+            "missing_fraction": data.null_count().transpose().to_series() / len(data),
+            "feature": data.columns,
+        }
+    ).sort("missing_fraction", descending=True)
+    return missing
+
+
+def get_correlation_pairs(
+    data: pl.DataFrame,
+    max_threshold: float = 0.99,
+    min_threshold: float = -0.99,
+) -> pl.DataFrame:
+    """
+    Find pairs of features in a DataFrame with correlations above a
+    certain threshold using Spearman's method.
+
+    Parameters:
+    - data (DataFrame): The input DataFrame containing the features.
+    - max_threshold (float): The maximum correlation threshold
+    (default is 0.99).
+    - min_threshold (float): The minimum correlation threshold
+    (default is -0.99).
+
+    Returns:
+    - DataFrame: A DataFrame containing the correlated feature pairs
+    and their correlations.
+
+    This function computes correlations between all possible pairs of features
+    using Spearman's method
+    and returns those pairs with correlations exceeding the specified
+    thresholds.
+    """
+
+    list_combos = list(combinations(data.columns, 2))
+    corrs = pl.DataFrame()
+    for i, combo in enumerate(list_combos):
+        corr = data.select(
+            pl.corr(combo[0], combo[1], method="spearman"),
+        ).to_numpy()[
+            0
+        ][0]
+        if corr >= max_threshold or corr <= min_threshold:
+            corrs = corrs.vstack(
+                pl.DataFrame(
+                    {
+                        "features": f"{combo[0]} {combo[1]}",
+                        "correlations": corr,
+                    }
+                )
+            )
+    return corrs
