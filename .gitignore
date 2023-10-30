@@ -5,3 +5,5 @@ temp
 auxiliary/__pycache__/eda_functions.cpython-39.pyc
 auxiliary/__pycache__/lists.cpython-39.pyc
 auxiliary/__pycache__/transformers.cpython-39.pyc
+auxiliary/__pycache__/tuning.cpython-39.pyc
+auxiliary/__pycache__/statistics.cpython-39.pyc

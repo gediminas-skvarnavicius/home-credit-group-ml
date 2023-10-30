@@ -1,6 +1,8 @@
 from sklearn.base import BaseEstimator, TransformerMixin  # type:ignore
 import polars as pl
 import numpy as np
+from typing import Union, Iterable
+from collections import OrderedDict
 
 
 class TargetMeanOrderedLabeler(BaseEstimator, TransformerMixin):
@@ -112,4 +114,284 @@ class TargetMeanOrderedLabeler(BaseEstimator, TransformerMixin):
             Transformed Polars Series with labeled categorical values.
         """
         X = X.map_dict(self.map)
+        return X
+
+
+class PolarsColumnTransformer(BaseEstimator, TransformerMixin):
+    """
+    Custom transformer for performing a specified sequence of transformations
+    on Polars DataFrames.
+
+    This transformer applies a series of transformations, each associated
+    with a specific column, to the input Polars DataFrame.
+    The transformations are specified as a list of 'Step' objects
+    and can include any Polars or custom transformations.
+
+    Parameters:
+    -----------
+    steps : Iterable[Step]
+        List of 'Step' objects, each defining a transformation to
+        apply to a specific column.
+    step_params : dict, optional
+        Dictionary of parameters for each step.
+
+    Attributes:
+    -----------
+    steps : OrderedDict
+        A dictionary containing the 'Step' objects and their
+        associated transformations.
+    step_params : dict
+        Dictionary of parameters for each step.
+
+    Methods:
+    --------
+    fit(X, y=None)
+        Fit the transformer to the input data.
+
+    transform(X)
+        Transform the input Polars DataFrame using the specified
+        sequence of transformations.
+
+    Returns:
+    --------
+    X : pl.DataFrame
+        Transformed Polars DataFrame.
+    """
+
+    class Step:
+        def __init__(self, name, transformer, col) -> None:
+            """
+            Initialize a transformation step.
+
+            Parameters:
+            -----------
+            name : str
+                Name of the step.
+            transformer
+                Transformer to apply to the specified column.
+            col : str
+                Name of the column to apply the transformation to.
+
+            Returns:
+            --------
+            None
+            """
+            self.transformer = transformer
+            self.col = col
+            self.name = name
+
+        def fit(self, X, y=None):
+            """
+            Fit the transformer in the step to the input data.
+
+            Parameters:
+            -----------
+            X : pl.Series or pl.DataFrame
+                Input data.
+            y : None
+                Ignored. It is not used in the fitting process.
+
+            Returns:
+            --------
+            self
+            """
+            self.transformer.fit(X, y)
+            return self
+
+        def transform(self, X):
+            """
+            Transform the input data using the transformer in the step.
+
+            Parameters:
+            -----------
+            X : pl.Series or pl.DataFrame
+                Input data.
+
+            Returns:
+            --------
+            Transformed data.
+            """
+            return self.transformer.transform(X)
+
+    def __init__(self, steps: Iterable[Step], step_params={}):
+        """
+        Initialize the PolarsColumnTransformer.
+
+        Parameters:
+        -----------
+        steps : Iterable[Step]
+            List of transformation steps to be applied.
+        step_params : dict, optional
+            Dictionary of parameters for each step.
+
+        Returns:
+        --------
+        None
+        """
+        self.steps = OrderedDict()
+        for step in steps:
+            self.steps[step.name] = step
+        self.step_params = step_params
+
+    def fit(self, X: Union[pl.Series, pl.DataFrame], y=None):
+        """
+        Fit the PolarsColumnTransformer to the input data.
+
+        Parameters:
+        -----------
+        X : pl.Series or pl.DataFrame
+            Input data.
+        y : None
+            Ignored. It is not used in the fitting process.
+
+        Returns:
+        --------
+        self
+        """
+        if self.step_params:
+            for id, params in self.step_params.items():
+                self.steps[id].transformer.set_params(**params)
+
+        for step in self.steps.values():
+            step.fit(X[step.col], y)
+        return self
+
+    def transform(self, X: Union[pl.Series, pl.DataFrame], y=None):
+        """
+        Transform the input data using the specified steps.
+
+        Parameters:
+        -----------
+        X : pl.Series or pl.DataFrame
+            Input data.
+        y : None
+            Ignored. It is not used in the transformation process.
+
+        Returns:
+        --------
+        X : pl.DataFrame
+            Transformed Polars DataFrame.
+        """
+        for step in self.steps.values():
+            transformed_col = step.transform(X[step.col])
+            if len(transformed_col.shape) == 1:
+                if isinstance(transformed_col, np.ndarray):
+                    transformed_col = pl.Series(name=step.col, values=transformed_col)
+                elif isinstance(transformed_col, pl.DataFrame):
+                    transformed_col = transformed_col[step.col]
+                X = X.with_columns(transformed_col.alias(step.col))
+            else:
+                if not isinstance(transformed_col, pl.DataFrame):
+                    transformed_col = pl.DataFrame(transformed_col)
+
+                X = pl.concat(
+                    [X.drop(columns=step.col), transformed_col], how="horizontal"
+                )
+
+        if len(X.shape) == 1:
+            X = X.values.reshape(-1, 1)
+        return X
+
+
+class PolarsOneHotEncoder(BaseEstimator, TransformerMixin):
+    """
+    One-hot encoder for Polars DataFrames.
+
+    This encoder converts categorical columns into one-hot encoded columns.
+    The resulting DataFrame has binary columns for each category, indicating
+    the presence or absence of the category.
+
+    Parameters:
+    -----------
+    drop : bool, default=False
+        Whether to drop one of the binary columns to avoid multicollinearity.
+        If True, one binary column for each category is dropped.
+
+    Attributes:
+    -----------
+    categories : list
+        List of unique categories found in the fitted data.
+    cats_not_in_transform : list
+        List of categories not found in the transformed data (if any).
+    drop : bool
+        Whether to drop one binary column for each category.
+
+    Methods:
+    --------
+    fit(X, y=None)
+        Fit the encoder to the input data.
+
+    transform(X, y=None)
+        Transform the input data into one-hot encoded format.
+
+    Returns:
+    --------
+    X : pl.DataFrame
+        Transformed Polars DataFrame with one-hot encoded columns.
+    """
+
+    def __init__(self, drop: bool = False) -> None:
+        """
+        Initialize the PolarsOneHotEncoder.
+
+        Parameters:
+        -----------
+        drop : bool, default=False
+            Whether to drop one of the binary columns to avoid
+            multicollinearity.
+
+        Returns:
+        --------
+        None
+        """
+        self.categories: list
+        self.cats_not_in_transform: list
+        self.drop = drop
+
+    def fit(self, X: Union[pl.Series, pl.DataFrame], y=None):
+        """
+        Fit the one-hot encoder to the input data.
+
+        Parameters:
+        -----------
+        X : pl.Series or pl.DataFrame
+            Input data.
+        y : None
+            Ignored. It is not used in the fitting process.
+
+        Returns:
+        --------
+        self
+        """
+        self.categories = X.unique().to_list()
+        return self
+
+    def transform(self, X: pl.Series, y=None):
+        """
+        Transform the input data into one-hot encoded format.
+
+        Parameters:
+        -----------
+        X : pl.Series
+            Input data to be one-hot encoded.
+        y : None
+            Ignored. It is not used in the transformation process.
+
+        Returns:
+        --------
+        X : pl.DataFrame
+            Transformed Polars DataFrame with one-hot encoded columns.
+        """
+        name = X.name
+        self.cats_not_in_transform = [
+            i for i in self.categories if i not in X.unique().to_list()
+        ]
+        X = X.to_dummies()
+        for col in self.cats_not_in_transform:
+            X = X.with_columns(
+                pl.zeros(len(X), pl.Int8, eager=True).alias((f"{name}_{col}"))
+            )
+        X = X.select(sorted(X.columns))
+        if self.drop:
+            X = X[:, ::2]
         return X
