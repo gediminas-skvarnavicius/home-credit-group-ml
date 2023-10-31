@@ -395,3 +395,87 @@ class PolarsOneHotEncoder(BaseEstimator, TransformerMixin):
         if self.drop:
             X = X[:, ::2]
         return X
+
+
+class FeatureRemover(BaseEstimator, TransformerMixin):
+    """
+    Transformer for removing specified features from a Polars DataFrame.
+
+    This transformer removes the specified columns (features)
+    from a Polars DataFrame.
+
+    Parameters:
+    -----------
+    feats_to_drop : Iterable of str, optional (default=[])
+        List of column names to be removed from the DataFrame.
+
+    Attributes:
+    -----------
+    feats_to_drop : Iterable of str
+        List of column names to be removed from the DataFrame.
+
+    Methods:
+    --------
+    fit(X, y)
+        Fit the feature remover to the input data.
+
+    transform(X, y=None)
+        Transform the input data by removing specified features.
+
+    Returns:
+    --------
+    X : pl.DataFrame
+        Transformed Polars DataFrame with specified features removed.
+    """
+
+    def __init__(self, feats_to_drop: Iterable[str] = []) -> None:
+        """
+        Initialize the FeatureRemover.
+
+        Parameters:
+        -----------
+        feats_to_drop : Iterable of str, optional (default=[])
+            List of column names to be removed from the DataFrame.
+
+        Returns:
+        --------
+        None
+        """
+        self.feats_to_drop = feats_to_drop
+
+    def fit(self, X: pl.DataFrame, y: pl.Series):
+        """
+        Fit the feature remover to the input data.
+
+        Parameters:
+        -----------
+        X : pl.DataFrame
+            Input data (DataFrame).
+        y : pl.Series
+            Target data (Series).
+
+        Returns:
+        --------
+        self : FeatureRemover
+            The fitted feature remover instance.
+        """
+        return self
+
+    def transform(self, X: pl.DataFrame, y=None):
+        """
+        Transform the input data by removing specified features.
+
+        Parameters:
+        -----------
+        X : pl.DataFrame
+            Input data (DataFrame) to have specified features removed.
+        y : None
+            Ignored. It is not used in the transformation process.
+
+        Returns:
+        --------
+        X : pl.DataFrame
+            Transformed Polars DataFrame with specified features removed.
+        """
+        X = X.drop(columns=self.feats_to_drop)
+        return X

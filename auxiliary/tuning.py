@@ -105,7 +105,7 @@ class TrainableCV(tune.Trainable):
         X_train: Training data features.
         y_train: Training data labels.
         sample_size (Union[int, str], optional): The sample size for data
-        splitting. Default is 100,000.
+        splitting.
 
         metric (str, optional): The metric used for scoring.
 
@@ -238,7 +238,7 @@ class Models:
             y_val: Union[pl.DataFrame, np.ndarray, pl.Series] = None,
             n: int = 100,
             n_iter: int = 5,
-            sample_size: int = 100000,
+            sample_size: int = None,
             metric: str = "roc_auc",
             stratify=True,
         ):
