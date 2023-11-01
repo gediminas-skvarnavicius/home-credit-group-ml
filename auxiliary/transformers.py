@@ -1,7 +1,7 @@
 from sklearn.base import BaseEstimator, TransformerMixin  # type:ignore
 import polars as pl
 import numpy as np
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from collections import OrderedDict
 
 
@@ -479,3 +479,200 @@ class FeatureRemover(BaseEstimator, TransformerMixin):
         """
         X = X.drop(columns=self.feats_to_drop)
         return X
+
+
+class NumDiffFromRestImputer(BaseEstimator, TransformerMixin):
+    def __init__(self, coef: float = 1) -> None:
+        self.coef = coef
+
+    def fit(self, X: pl.Series, y: pl.Series):
+        if X.is_null().any():
+            self.null_mean = y.filter(X.is_null()).mean()
+            self.not_null_mean = y.filter(X.is_not_null()).mean()
+            self.corr = pl.DataFrame([X, y]).select(pl.corr(X.name, y.name))[0, 0]
+            self.x_min = X.min()
+            self.x_max = X.max()
+            if self.corr >= 0:
+                if self.null_mean <= self.not_null_mean:
+                    self.fill_val = self.x_min - np.abs(self.coef * self.x_min)
+                else:
+                    self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+            else:
+                if self.null_mean <= self.not_null_mean:
+                    self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+                else:
+                    self.fill_val = np.abs(self.x_min - self.coef * self.x_min)
+        return self
+
+    def transform(self, X: pl.Series, y=None):
+        if hasattr(self, "fill_val"):
+            X = X.fill_null(pl.lit(self.fill_val))
+        else:
+            X = X.fill_null(pl.lit(X.min() - np.abs(X.min())))
+        return X
+
+
+class NotInImputerPolars(BaseEstimator, TransformerMixin):
+    """
+    Transformer for imputing values in a Polars DataFrame by filtering out
+    values not in the specified number of most frequent values
+    and replacing them with the most frequent value.
+
+    This transformer filters each specified column in the input data
+    to retain only the values that are among the most frequent.
+    It then replaces the remaining values with the most frequent value.
+
+    Parameters:
+    -----------
+    filter : Optional[Iterable]
+        Values to filter out for each column. If not provided, it will be
+        computed during fitting.
+    cat_no : Optional[int]
+        Number of most frequent categories to consider for filtering.
+        Ignored if `filter` is provided.
+    fill_value : Optional[Union[int, str, float]]
+        Value to fill in for filtered-out values. If not provided, it will
+        be computed during fitting.
+    most_frequent : bool
+        If True, replace missing values with the most frequent value in
+        each column.
+    return_format : str
+        Output format. Can be 'pl' for Polars DataFrame or 'np'
+        for NumPy array.
+
+    Attributes:
+    -----------
+    filter : dict
+        A dictionary containing information about the most frequent values
+        for each specified column.
+        The dictionary structure is as follows:
+        {
+            'column_name': [most_frequent_value_1, most_frequent_value_2, ...],
+            ...
+        }
+
+    Methods:
+    --------
+    fit(X)
+        Fit the imputer to the specified columns in the input data.
+
+    transform(X)
+        Transform the input data by imputing values based on the most frequent
+        values.
+
+    Returns:
+    --------
+    X : pl.DataFrame or np.ndarray
+        Transformed data with filled values in the specified format.
+    """
+
+    def __init__(
+        self,
+        filter: Optional[Iterable] = None,
+        cat_no: Optional[int] = None,
+        min_values: int = None,
+        fill_value: Optional[Union[int, str, float]] = None,
+        most_frequent: bool = False,
+        return_format: str = "pl",
+    ):
+        """
+        Initialize the NotInImputer.
+
+        Parameters:
+            filter (Iterable, optional): Values to filter out for each column.
+            If not provided, it will be computed during fitting.
+            cat_no (int, optional): Number of most frequent categories to
+            consider for filtering. Ignored if `filter` is provided.
+            fill_value (int, str, float, optional): Value to fill in for
+            filtered-out values. If not provided,
+            it will be computed during fitting.
+        """
+        if filter is None and cat_no is None and min_values is None:
+            raise ValueError(
+                "Either 'filter', 'min_values' or 'cat_no' must be defined."
+            )
+        if cat_no is not None and min_values is not None:
+            raise ValueError("Can not use both cat_no and min_values together")
+        self.fill_value = fill_value
+        self.filter = filter
+        self.cat_no = cat_no
+        self.most_frequent = most_frequent
+        self.min_values = min_values
+        self.return_format = return_format
+
+    def fit(self, X: Union[pl.Series, pl.DataFrame], y=None):
+        """
+        Fit the NotInImputer to the input data.
+
+        Parameters:
+            X (pl.Series or pl.DataFrame): Input data.
+
+        Returns:
+            self
+        """
+        if len(X.shape) == 1:
+            # Convert the Series to a DataFrame-like structure
+            if hasattr(X, "name"):
+                X = pl.DataFrame({X.name: X})
+            else:
+                X = pl.DataFrame(X)
+        if not self.filter and self.cat_no is not None:
+            self.filter = {}
+            for col in X.columns:
+                self.filter[col] = (
+                    X[col].value_counts().sort("counts")[col][-self.cat_no :].to_list()
+                )
+        if not self.filter and self.min_values is not None:
+            self.filter = {}
+            for col in X.columns:
+                self.filter[col] = (
+                    X[col]
+                    .value_counts()
+                    .filter(pl.col("counts") >= self.min_values)[col]
+                    .to_list()
+                )
+        if self.most_frequent:
+            self.fill_values = {}
+            for col in X.columns:
+                self.fill_value[col] = (
+                    X[col].value_counts().sort("counts")[col].to_list()[-1]
+                )
+        else:
+            self.fill_values = {}
+            for col in X.columns:
+                self.fill_values[col] = self.fill_value
+        return self
+
+    def transform(
+        self, X: Union[pl.Series, pl.DataFrame]
+    ) -> Union[pl.Series, pl.DataFrame]:
+        """
+        Transform the input data by filling in values.
+
+        Parameters:
+            X (pl.Series or pl.DataFrame): Input data.
+
+        Returns:
+            Union[pl.Series, pl.DataFrame]: Transformed data with
+            filled values.
+        """
+        if len(X.shape) == 1:
+            # Convert the Series to a DataFrame-like structure
+            if hasattr(X, "name"):
+                X = pl.DataFrame({X.name: X})
+            else:
+                X = pl.DataFrame(X)
+        X_filled = X
+        for col in X_filled.columns:
+            X_filled = X_filled.with_columns(
+                pl.col(col)
+                .map_elements(
+                    lambda x: self.fill_values[col] if x not in self.filter[col] else x
+                )
+                .alias(col)
+            )
+        if len(X_filled.shape) == 1:
+            X_filled = X_filled.to_numpy()
+        if self.return_format == "np":
+            X_filled = X_filled.to_numpy()
+        return X_filled

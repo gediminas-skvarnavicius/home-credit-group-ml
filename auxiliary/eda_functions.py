@@ -3,7 +3,8 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import classification_report
 from catboost import CatBoostClassifier
 from sklearn.model_selection import StratifiedKFold
-
+from IPython.display import Markdown
+from tabulate import tabulate
 
 # def test_with_catboost(
 #     data: pl.DataFrame, data_val: pl.DataFrame, cat_features, sample_size=None
@@ -67,7 +68,11 @@ from sklearn.model_selection import StratifiedKFold
 
 
 def test_with_catboost_crossval(
-    X: pl.DataFrame, y: pl.Series, cat_features=None, sample_size=None
+    X: pl.DataFrame,
+    y: pl.Series,
+    cat_features=None,
+    sample_size=None,
+    kfolds: int = None,
 ):
     # Wether to sample
     if sample_size:
@@ -75,20 +80,19 @@ def test_with_catboost_crossval(
         y = y.sample(sample_size, shuffle=True, seed=1)
 
     # Filling nulls
-    cat_indices = None
-    if cat_features:
-        cat_indices = []
-        for col in cat_features:
-            X = X.with_columns(pl.col(col).fill_null("None").alias(col))
-        for col in cat_features:
-            cat_indices.append(X.find_idx_by_name(col))
-    if cat_features:
-        num_cols = [col for col in X.columns if col not in cat_features]
-    else:
-        num_cols = X.columns
+    if not cat_features:
+        cat_features = X.select(pl.col(pl.Utf8)).columns
+
+    cat_indices = []
+    for col in cat_features:
+        X = X.with_columns(pl.col(col).fill_null("None").alias(col))
+    for col in cat_features:
+        cat_indices.append(X.find_idx_by_name(col))
+
+    num_cols = [col for col in X.columns if col not in cat_features]
+
     for col in num_cols:
         X = X.with_columns(pl.col(col).fill_null(-1).alias(col))
-
     # Categorical col indices
 
     # Model
@@ -98,22 +102,31 @@ def test_with_catboost_crossval(
         l2_leaf_reg=10,
         auto_class_weights="Balanced",
     )
-
     scores = []
-    k_fold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    for train_index, test_index in k_fold.split(X, y):
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+    if kfolds:
+        k_fold = StratifiedKFold(
+            n_splits=kfolds,
+            shuffle=True,
+            random_state=42,
+        )
+        for train_index, test_index in k_fold.split(X, y):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
 
-        # Fitting and evaluation
-        cat.fit(X_train.to_numpy(), y_train.to_numpy(), verbose=0)
-        # preds = cat.predict(X_test.to_numpy())
-        preds_proba = cat.predict_proba(X_test.to_numpy())[:, 1]
-        scores.append(roc_auc_score(y_test, preds_proba))
+            # Fitting and evaluation
+            cat.fit(X_train.to_numpy(), y_train.to_numpy(), verbose=0)
+            # preds = cat.predict(X_test.to_numpy())
+            preds_proba = cat.predict_proba(X_test.to_numpy())[:, 1]
+            scores.append(roc_auc_score(y_test, preds_proba))
+
+    cat.fit(X.to_numpy(), y.to_numpy(), verbose=0)
+    if not kfolds:
+        preds_proba = cat.predict_proba(X.to_numpy())[:, 1]
+        scores.append(roc_auc_score(y, preds_proba))
 
     initial_importances = pl.DataFrame(
         {
-            "feature": X_train.columns,
+            "feature": X.columns,
             "importance": cat.feature_importances_,
         }
     ).sort("importance", descending=True)
@@ -193,3 +206,14 @@ def missing_values_by_feature(data):
         }
     ).sort("missing_fraction", descending=True)
     return missing
+
+
+def table_display(table: pl.DataFrame):
+    return Markdown(
+        tabulate(
+            table.to_pandas(),
+            showindex=False,
+            headers="keys",
+            tablefmt="pipe",
+        )
+    )
