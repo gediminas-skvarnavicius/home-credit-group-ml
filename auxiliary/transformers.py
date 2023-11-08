@@ -3,6 +3,7 @@ import polars as pl
 import numpy as np
 from typing import Union, Iterable, Optional
 from collections import OrderedDict
+from imblearn.over_sampling import SMOTE, ADASYN, RandomOverSampler
 
 
 class TargetMeanOrderedLabeler(BaseEstimator, TransformerMixin):
@@ -676,3 +677,131 @@ class NotInImputerPolars(BaseEstimator, TransformerMixin):
         if self.return_format == "np":
             X_filled = X_filled.to_numpy()
         return X_filled
+
+
+class SamplingModelWrapper(BaseEstimator, TransformerMixin):
+    """
+    A transformer that wraps an optional oversampling technique with a model.
+
+    Parameters:
+    ----------
+    model : object
+        The underlying model to be used for classification.
+
+    sampler : str, optional (default=None)
+        The oversampling technique to use. Supported values are
+        'smote', 'adasyn', 'random', or None.
+        If set to None, no oversampling will be applied.
+
+    Attributes:
+    ----------
+    model : object
+        The underlying model for classification.
+
+    sampler : str or None
+        The oversampling technique to be applied. If None,
+        no oversampling is used.
+
+    transformer : object
+        The oversampling transformer (SMOTE, ADASYN, or RandomOverSampler)
+        based on the 'sampler' parameter.
+
+    Methods:
+    --------
+    fit(X, y)
+        Fits the oversampling transformer (if specified) and the underlying
+        model to the input data.
+
+    predict(X)
+        Predicts class labels for input data using the underlying model.
+
+    Returns:
+    --------
+    self : object
+        Returns the instance of the transformer.
+    """
+
+    def __init__(self, model, sampler=None, model_params=None) -> None:
+        """
+        Initialize the SamplingModelWrapper.
+
+        Parameters:
+        ----------
+        model : object
+            The underlying model to be used for classification.
+
+        sampler : str, optional (default=None)
+            The oversampling technique to use. Supported values are
+            'smote', 'adasyn', 'random', or None.
+            If set to None, no oversampling will be applied.
+        """
+        self.sampler = sampler
+        self.model = model
+        self.model_params = model_params
+
+        if self.model_params:
+            self.model.set_params(**self.model_params)
+
+    def fit(
+        self, X: Union[pl.Series, pl.DataFrame], y: pl.Series = None
+    ) -> "SamplingModelWrapper":
+        """
+        Fit the transformer to the input data.
+
+        Parameters:
+        ----------
+        X : Union[pl.Series, pl.DataFrame]
+            The input features for training.
+
+        y : pl.Series, optional (default=None)
+            The target labels for training.
+
+        Returns:
+        --------
+        self : object
+            Returns the instance of the transformer.
+        """
+        if self.sampler:
+            if self.sampler == "smote":
+                self.transformer = SMOTE(random_state=1)
+            elif self.sampler == "adasyn":
+                self.transformer = ADASYN(random_state=1)
+            elif self.sampler == "random":
+                self.transformer = RandomOverSampler(random_state=1)
+            X, y = self.transformer.fit_resample(X.to_numpy(), y.to_numpy())
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X: Union[pl.Series, pl.DataFrame]) -> np.ndarray:
+        """
+        Predict class labels for the input data.
+
+        Parameters:
+        ----------
+        X : Union[pl.Series, pl.DataFrame]
+            The input features for prediction.
+
+        Returns:
+        --------
+        pd.Series
+            Predicted class labels.
+        """
+        predictions = self.model.predict(X)
+        return predictions
+
+    def predict_proba(self, X: Union[pl.Series, pl.DataFrame]) -> np.ndarray:
+        """
+        Predict class probabilities for the input data.
+
+        Parameters:
+        ----------
+        X : Union[pl.Series, pl.DataFrame]
+            The input features for prediction.
+
+        Returns:
+        --------
+        pd.Series
+            Predicted class labels.
+        """
+        predictions = self.model.predict_proba(X)
+        return predictions
