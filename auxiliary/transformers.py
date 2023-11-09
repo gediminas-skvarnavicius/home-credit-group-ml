@@ -493,16 +493,25 @@ class NumDiffFromRestImputer(BaseEstimator, TransformerMixin):
             self.corr = pl.DataFrame([X, y]).select(pl.corr(X.name, y.name))[0, 0]
             self.x_min = X.min()
             self.x_max = X.max()
-            if self.corr >= 0:
-                if self.null_mean <= self.not_null_mean:
-                    self.fill_val = self.x_min - np.abs(self.coef * self.x_min)
-                else:
-                    self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+
+            if (
+                self.corr is None
+                or self.null_mean is None
+                or self.not_null_mean is None
+            ):
+                self.fill_val = -9999
+
             else:
-                if self.null_mean <= self.not_null_mean:
-                    self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+                if self.corr >= 0:
+                    if self.null_mean <= self.not_null_mean:
+                        self.fill_val = self.x_min - np.abs(self.coef * self.x_min)
+                    else:
+                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
                 else:
-                    self.fill_val = np.abs(self.x_min - self.coef * self.x_min)
+                    if self.null_mean <= self.not_null_mean:
+                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+                    else:
+                        self.fill_val = np.abs(self.x_min - self.coef * self.x_min)
         return self
 
     def transform(self, X: pl.Series, y=None):
