@@ -3,6 +3,7 @@ from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
 from typing import Optional, Dict, Union
 import polars as pl
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.pipeline import Pipeline
 from ray.tune.search.optuna import OptunaSearch
 from sklearn.model_selection import StratifiedKFold, KFold
@@ -144,18 +145,21 @@ class TrainableCV(tune.Trainable):
         Returns:
         dict: A dictionary containing the score for the current step.
         """
-        score = objective(
-            self.pipeline,
-            self.params,
-            self.X_train[self.fold_indices[self.x][0]],
-            self.y_train[self.fold_indices[self.x][0]],
-            self.X_train[self.fold_indices[self.x][1]],
-            self.y_train[self.fold_indices[self.x][1]],
-            self.x,
-            self.metric,
-        )
-        self.scores = np.append(self.scores, score)
-        self.x += 1
+        try:
+            score = objective(
+                self.pipeline,
+                self.params,
+                self.X_train[self.fold_indices[self.x][0]],
+                self.y_train[self.fold_indices[self.x][0]],
+                self.X_train[self.fold_indices[self.x][1]],
+                self.y_train[self.fold_indices[self.x][1]],
+                self.x,
+                self.metric,
+            )
+            self.scores = np.append(self.scores, score)
+            self.x += 1
+        except:
+            print(f"cross val {self.x} False")
         return {"score": self.scores.mean()}
 
 
@@ -310,6 +314,23 @@ class Models:
             results = tuner.fit()
             self.best_params = results.get_best_result().config
             self.pipeline.set_params(**self.best_params)
+
+        def cross_val_roc_auc(self, X, y, n: int = 5, n_jobs: int = -1):
+            def process_fold(train_index, test_index, X, y, pipeline):
+                pipeline.fit(X[train_index], y[train_index])
+                return roc_auc_score(
+                    y[test_index], pipeline.predict_proba(X[test_index])[:, 1]
+                )
+
+            cv = StratifiedKFold(n)
+            parallel = Parallel(n_jobs=n_jobs)
+
+            scores = parallel(
+                delayed(process_fold)(train_index, test_index, X, y, self.pipeline)
+                for train_index, test_index in cv.split(X, y)
+            )
+
+            return scores
 
     def add_model(
         self,
