@@ -1,9 +1,11 @@
 from sklearn.base import BaseEstimator, TransformerMixin  # type:ignore
 import polars as pl
 import numpy as np
-from typing import Union, Iterable, Optional
+from typing import Union, Iterable, Optional, Any
 from collections import OrderedDict
 from imblearn.over_sampling import SMOTE, ADASYN, RandomOverSampler
+from sklearn.model_selection import StratifiedKFold
+from joblib import Parallel, delayed
 
 
 class TargetMeanOrderedLabeler(BaseEstimator, TransformerMixin):
@@ -730,7 +732,9 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
         Returns the instance of the transformer.
     """
 
-    def __init__(self, model, sampler=None, model_params=None) -> None:
+    def __init__(
+        self, model, sampler=None, model_params=None, final_fill="none"
+    ) -> None:
         """
         Initialize the SamplingModelWrapper.
 
@@ -747,12 +751,14 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
         self.sampler = sampler
         self.model = model
         self.model_params = model_params
-
+        self.final_fill = final_fill
         if self.model_params:
             self.model.set_params(**self.model_params)
 
     def fit(
-        self, X: Union[pl.Series, pl.DataFrame], y: pl.Series = None
+        self,
+        X: Union[pl.Series, pl.DataFrame, np.ndarray],
+        y: pl.Series = None,
     ) -> "SamplingModelWrapper":
         """
         Fit the transformer to the input data.
@@ -777,7 +783,19 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
                 self.transformer = ADASYN(random_state=1)
             elif self.sampler == "random":
                 self.transformer = RandomOverSampler(random_state=1)
-            X, y = self.transformer.fit_resample(X.to_numpy(), y.to_numpy())
+            if isinstance(X, (pl.DataFrame, pl.Series)):
+                if self.final_fill == "none":
+                    X = X.fill_null(self.final_fill)
+                    y = y.fill_null(self.final_fill)
+                X, y = self.transformer.fit_resample(
+                    X.to_numpy(),
+                    y.to_numpy(),
+                )
+            else:
+                if self.final_fill == "none":
+                    X[np.isnan(X)] = self.final_fill
+                    y[np.isnan(X)] = self.final_fill
+                X, y = self.transformer.fit_resample(X, y)
         self.model.fit(X, y)
         return self
 
@@ -813,4 +831,96 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
             Predicted class labels.
         """
         predictions = self.model.predict_proba(X)
+        return predictions
+
+
+class SimplerStacker(BaseEstimator, TransformerMixin):
+    """
+    A simple stacking transformer that combines predictions from base models
+    using cross-validated predictions and then fits a final estimator
+    on the aggregated predictions.
+
+    Parameters:
+    - base_models (Iterable): An iterable containing the base
+    models to be stacked.
+    - final_estimator: The final estimator that will be trained on
+    the aggregated predictions of base models.
+
+    Methods:
+    - fit(X, y): Fit the base models and the final estimator on the input data.
+    - predict_proba(X): Generate class probabilities for the input data.
+
+    Note: The final estimator should be compatible with the `fit` and `predict_proba` methods.
+    """
+
+    def __init__(
+        self,
+        base_models: Iterable[Any],
+        final_estimator: Any,
+    ) -> None:
+        """
+        Initialize the SimplerStacker.
+
+        Parameters:
+        - base_models (Iterable): An iterable containing the base models
+        to be stacked.
+        - final_estimator: The final estimator that will be trained on the
+        aggregated predictions of base models.
+        """
+        self.base_models = base_models
+        self.final_estimator = final_estimator
+
+    def fit(self, X, y):
+        """
+        Fit the SimplerStacker on the input data.
+
+        Parameters:
+        - X: Input features.
+        - y: Target values.
+
+        Returns:
+        - self: Returns an instance of the fitted SimplerStacker.
+        """
+        base_predictions = []
+        kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
+
+        # Define a function for parallel execution
+        def train_and_predict(train_index, test_index):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train = y[train_index]
+            model.fit(X_train, y_train)
+            return model.predict_proba(X_test)[:, 1]
+
+        for model in self.base_models:
+            y_pred_cv = np.zeros_like(y, dtype=float)
+
+            # Perform parallelized cross-validated predictions
+            results = Parallel(n_jobs=-1)(
+                delayed(train_and_predict)(train_index, test_index)
+                for train_index, test_index in kf.split(X, y)
+            )
+            for i, (train_index, test_index) in enumerate(kf.split(X, y)):
+                y_pred_cv[test_index] = results[i]
+
+            base_predictions.append(y_pred_cv)
+            model.fit(X, y)
+        base_predictions = np.column_stack(base_predictions)
+        self.final_estimator.fit(base_predictions, y)
+        return self
+
+    def predict_proba(self, X):
+        """
+        Generate class probabilities for the input data.
+
+        Parameters:
+        - X: Input features.
+
+        Returns:
+        - predictions: Class probabilities.
+        """
+        base_predictions = []
+        for model in self.base_models:
+            base_predictions.append(model.predict_proba(X)[:, 1])
+        base_predictions = np.column_stack(base_predictions)
+        predictions = self.final_estimator.predict_proba(base_predictions)
         return predictions
