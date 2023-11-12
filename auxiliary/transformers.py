@@ -506,14 +506,14 @@ class NumDiffFromRestImputer(BaseEstimator, TransformerMixin):
             else:
                 if self.corr >= 0:
                     if self.null_mean <= self.not_null_mean:
-                        self.fill_val = self.x_min - np.abs(self.coef * self.x_min)
+                        self.fill_val = self.x_min - np.abs(self.coef * self.x_min) - 1
                     else:
-                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max) + 1
                 else:
                     if self.null_mean <= self.not_null_mean:
-                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max)
+                        self.fill_val = self.x_max + np.abs(self.coef * self.x_max) - 1
                     else:
-                        self.fill_val = np.abs(self.x_min - self.coef * self.x_min)
+                        self.fill_val = np.abs(self.x_min - self.coef * self.x_min) + 1
         return self
 
     def transform(self, X: pl.Series, y=None):
@@ -733,7 +733,10 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self, model, sampler=None, model_params=None, final_fill="none"
+        self,
+        model,
+        sampler=None,
+        model_params=None,
     ) -> None:
         """
         Initialize the SamplingModelWrapper.
@@ -751,7 +754,6 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
         self.sampler = sampler
         self.model = model
         self.model_params = model_params
-        self.final_fill = final_fill
         if self.model_params:
             self.model.set_params(**self.model_params)
 
@@ -784,17 +786,10 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
             elif self.sampler == "random":
                 self.transformer = RandomOverSampler(random_state=1)
             if isinstance(X, (pl.DataFrame, pl.Series)):
-                if self.final_fill == "none":
-                    X = X.fill_null(self.final_fill)
-                    y = y.fill_null(self.final_fill)
                 X, y = self.transformer.fit_resample(
                     X.to_numpy(),
                     y.to_numpy(),
                 )
-            else:
-                if self.final_fill == "none":
-                    X[np.isnan(X)] = self.final_fill
-                    y[np.isnan(X)] = self.final_fill
                 X, y = self.transformer.fit_resample(X, y)
         self.model.fit(X, y)
         return self
@@ -924,3 +919,94 @@ class SimplerStacker(BaseEstimator, TransformerMixin):
         base_predictions = np.column_stack(base_predictions)
         predictions = self.final_estimator.predict_proba(base_predictions)
         return predictions
+
+
+class PolarsNullImputer(BaseEstimator, TransformerMixin):
+    """
+    Null imputer for Polars DataFrames.
+
+    This imputer replaces null (missing) values in the input data with
+    specified fill values.
+
+    Parameters:
+    -----------
+    fill_value : Any
+        List of fill values to replace null values in each column.
+
+    Attributes:
+    -----------
+    fill_value : List
+        List of fill values to be used for imputation.
+
+    Methods:
+    --------
+    fit(X, y=None)
+        Fit the imputer to the input data.
+
+    transform(X, y=None)
+        Transform the input data by replacing null values with the specified
+        fill values.
+
+    Returns:
+    --------
+    X : pl.DataFrame
+        Transformed Polars DataFrame with null values replaced by fill values.
+    """
+
+    def __init__(self, fill_value: Any) -> None:
+        """
+        Initialize the PolarsNullImputer.
+
+        Parameters:
+        -----------
+        fill_value : List
+            List of fill values to replace null values in each column.
+
+        Returns:
+        --------
+        None
+        """
+        self.fill_value = fill_value
+
+    def fit(self, X, y=None):
+        """
+        Fit the null imputer to the input data.
+
+        Parameters:
+        -----------
+        X : pl.DataFrame
+            Input data.
+        y : None
+            Ignored. It is not used in the fitting process.
+
+        Returns:
+        --------
+        self
+        """
+        return self
+
+    def transform(self, X: pl.DataFrame, y=None):
+        """
+        Transform the input data by replacing null values with the specified
+        fill values.
+
+        Parameters:
+        -----------
+        X : pl.DataFrame
+            Input data to be imputed.
+        y : None
+            Ignored. It is not used in the transformation process.
+
+        Returns:
+        --------
+        X : pl.DataFrame
+            Transformed Polars DataFrame with null values replaced by
+            fill values.
+        """
+        if not isinstance(X, pl.DataFrame):
+            X = pl.DataFrame(X)
+        bool_cols = X.select(pl.col(pl.Boolean)).columns
+        for col in bool_cols:
+            X = X.with_columns(pl.col(col).cast(pl.Int32).alias(col))
+        X = X.fill_null(self.fill_value)
+        return X
