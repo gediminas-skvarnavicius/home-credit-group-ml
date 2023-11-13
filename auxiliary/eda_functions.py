@@ -1,10 +1,12 @@
 import polars as pl
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics import classification_report
 from catboost import CatBoostClassifier
 from sklearn.model_selection import StratifiedKFold
 from IPython.display import Markdown
 from tabulate import tabulate
+from pandas import Series
+import numpy as np
+from typing import Union
 
 
 def test_with_catboost_crossval(
