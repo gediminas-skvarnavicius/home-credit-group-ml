@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.290">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Home Credit Project Summary</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="summary_files/libs/clipboard/clipboard.min.js"></script>
+<script src="summary_files/libs/quarto-html/quarto.js"></script>
+<script src="summary_files/libs/quarto-html/popper.min.js"></script>
+<script src="summary_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="summary_files/libs/quarto-html/anchor.min.js"></script>
+<link href="summary_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="summary_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="summary_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="summary_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="summary_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#problems-that-this-projects-solves" id="toc-problems-that-this-projects-solves" class="nav-link" data-scroll-target="#problems-that-this-projects-solves"><span class="header-section-number">2</span> Problems That This Projects Solves:</a></li>
+  <li><a href="#goals" id="toc-goals" class="nav-link" data-scroll-target="#goals"><span class="header-section-number">3</span> Goals</a>
+  <ul class="collapse">
+  <li><a href="#goal-1-credit-default-risk" id="toc-goal-1-credit-default-risk" class="nav-link" data-scroll-target="#goal-1-credit-default-risk"><span class="header-section-number">3.1</span> Goal 1: Credit Default Risk</a></li>
+  <li><a href="#goal-2-credit-over-limit-prediction" id="toc-goal-2-credit-over-limit-prediction" class="nav-link" data-scroll-target="#goal-2-credit-over-limit-prediction"><span class="header-section-number">3.2</span> Goal 2: Credit Over Limit Prediction</a></li>
+  <li><a href="#goal-3-consumer-loan-fees-prediction" id="toc-goal-3-consumer-loan-fees-prediction" class="nav-link" data-scroll-target="#goal-3-consumer-loan-fees-prediction"><span class="header-section-number">3.3</span> Goal 3: Consumer Loan Fees Prediction</a></li>
+  </ul></li>
+  <li><a href="#insights-from-eda" id="toc-insights-from-eda" class="nav-link" data-scroll-target="#insights-from-eda"><span class="header-section-number">4</span> Insights from EDA</a>
+  <ul class="collapse">
+  <li><a href="#application-table-analysis" id="toc-application-table-analysis" class="nav-link" data-scroll-target="#application-table-analysis"><span class="header-section-number">4.1</span> Application table analysis</a></li>
+  <li><a href="#credit-bureau-data" id="toc-credit-bureau-data" class="nav-link" data-scroll-target="#credit-bureau-data"><span class="header-section-number">4.2</span> Credit Bureau Data</a></li>
+  <li><a href="#previous-application-data" id="toc-previous-application-data" class="nav-link" data-scroll-target="#previous-application-data"><span class="header-section-number">4.3</span> Previous Application Data</a></li>
+  </ul></li>
+  <li><a href="#feature-generation" id="toc-feature-generation" class="nav-link" data-scroll-target="#feature-generation"><span class="header-section-number">5</span> Feature Generation</a>
+  <ul class="collapse">
+  <li><a href="#features-for-model-1-default-risk-prediction" id="toc-features-for-model-1-default-risk-prediction" class="nav-link" data-scroll-target="#features-for-model-1-default-risk-prediction"><span class="header-section-number">5.1</span> Features for Model 1: Default Risk Prediction</a></li>
+  <li><a href="#modeling" id="toc-modeling" class="nav-link" data-scroll-target="#modeling"><span class="header-section-number">5.2</span> Modeling</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Home Credit Project Summary</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell" data-execution_count="15">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>reload_ext autoreload</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>autoreload <span class="dv">1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> joblib</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> auxiliary.statistics <span class="im">as</span> st</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> auxiliary.transformers <span class="im">as</span> tr</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> auxiliary.eda_functions <span class="im">as</span> eda</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> MinMaxScaler</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown,display</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.ticker <span class="im">as</span> ticker</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tabulate <span class="im">import</span> tabulate</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.dummy <span class="im">import</span> DummyClassifier</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.impute <span class="im">import</span> SimpleImputer</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>aimport auxiliary.statistics</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>aimport auxiliary.lists</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>aimport auxiliary.transformers</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>aimport auxiliary.eda_functions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="3">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sns.<span class="bu">set</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>BASE_FIG_SIZE<span class="op">=</span>(<span class="fl">8.5</span>,<span class="fl">4.5</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ALPHA<span class="op">=</span><span class="fl">0.05</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="introduction" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
+</section>
+<section id="problems-that-this-projects-solves" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="problems-that-this-projects-solves"><span class="header-section-number">2</span> Problems That This Projects Solves:</h2>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>application_train<span class="op">=</span>pl.read_csv(<span class="st">'data/application_train.csv'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>bureau_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau_balance.csv'</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>bureau<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau.csv'</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>installments_payments<span class="op">=</span>pl.read_csv(<span class="st">'data/installments_payments.csv'</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>POS_CASH_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/POS_CASH_balance.csv'</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>previous_application<span class="op">=</span>pl.read_csv(<span class="st">'data/previous_application.csv'</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>credit_card_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/credit_card_balance.csv'</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>credit_data <span class="op">=</span> pl.read_parquet(<span class="st">"temp/active_credit_cards.parquet"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>id_and_target<span class="op">=</span>[<span class="st">"SK_ID_CURR"</span>, <span class="st">"TARGET"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="goals" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="goals"><span class="header-section-number">3</span> Goals</h2>
+<section id="goal-1-credit-default-risk" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="goal-1-credit-default-risk"><span class="header-section-number">3.1</span> Goal 1: Credit Default Risk</h3>
+<p>The primary objective of the first model is to predict whether the applicant will encounter challenges in repaying the loan.</p>
+<p><strong>Displaying the target class balance:</strong></p>
+<div class="cell" data-execution_count="5">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig_target_balance, ax_target_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    [application_train[<span class="st">"TARGET"</span>].<span class="bu">sum</span>(), <span class="bu">len</span>(application_train[<span class="st">"TARGET"</span>])],</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_target_balance,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax_target_balance.yaxis.set_major_formatter(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticks([<span class="dv">0</span>,<span class="dv">1</span>])</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticklabels([<span class="st">'Had Difficulties'</span>,<span class="st">'No Difficulties'</span>])</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>fig_target_balance.savefig(<span class="st">'summary_data/target_balance_chart.png'</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-target_balance" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-target_balance-output-1.png" class="quarto-discovered-preview-image img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;1: The number of applicants that had difficulties repaying their loan vs.&nbsp;those that had no difficulties.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="success-criteria" class="level4" data-number="3.1.1">
+<h4 data-number="3.1.1" class="anchored" data-anchor-id="success-criteria"><span class="header-section-number">3.1.1</span> Success Criteria</h4>
+<p>During the Exploratory Data Analysis, it was revealed that the company leverages three external data sources, incurring associated costs. The external data, being scaled and exhibiting an approximately normal distribution, serves as the basis for establishing a success baseline. To gauge this baseline, a rudimentary classifier is applied to the data, and its performance is evaluated. Given the simplicity and effectiveness of logistic regression with this data – achievable with just a single line of code – it is considered a current attainable benchmark for the company.</p>
+<p><strong>Logistic Regression ROC AUC score based on external data:</strong></p>
+<div class="cell" data-execution_count="6">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>imputer <span class="op">=</span> SimpleImputer()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>log_reg_model <span class="op">=</span> LogisticRegression(class_weight<span class="op">=</span><span class="st">"balanced"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> Pipeline([(<span class="st">"imputer"</span>, imputer), (<span class="st">"model"</span>, log_reg_model)])</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                pipeline,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                application_train[[<span class="st">"EXT_SOURCE_1"</span>, <span class="st">"EXT_SOURCE_2"</span>, <span class="st">"EXT_SOURCE_3"</span>]],</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                application_train[<span class="st">"TARGET"</span>],</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"roc_auc"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.719</code></pre>
+</div>
+</div>
+<p>With the logistic regression model yielding a roc-auc score of 0.719 based on external data, two success criteria: can be set: * <strong>Best Case:</strong> Our model autonomously outperforms the external data score, without depending on additional external data. * <strong>Acceptable:</strong> The incorporation of our model contributes to an improvement in the external data score.</p>
+</section>
+</section>
+<section id="goal-2-credit-over-limit-prediction" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="goal-2-credit-over-limit-prediction"><span class="header-section-number">3.2</span> Goal 2: Credit Over Limit Prediction</h3>
+<p>During the EDA it was noted that some credit cards are over balance limit for the current month <a href="#fig-over-limit">Figure&nbsp;2</a>. Therefore, as an additional benefit, the construction of a model aiming to predict whether the current month’s credit balance will exceed the limit for a specific credit card offers valuable advantages. This model can serve to proactively issue warnings to credit card holders, providing them with timely alerts. Simultaneously, it enables the company to assess and manage internal capital risks more effectively by anticipating and addressing potential over-limit situations before they occur.</p>
+<div class="cell" data-execution_count="7">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig_balance, ax_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_BALANCE"</span>]</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>]</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>x_bal <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">900000</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>sns.lineplot(</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>x_bal,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>x_bal,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"Balance = Limit"</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"black"</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>ax_balance.xaxis.set_major_formatter(</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>ax_balance.yaxis.set_major_formatter(</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-over-limit" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-over-limit-output-1.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;2: Credit card balance versus credit card limit for a random sample of n=1000. Points higher on the y-axis than the black line signify credit-cards over limit.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="success-criteria-1" class="level4" data-number="3.2.1">
+<h4 data-number="3.2.1" class="anchored" data-anchor-id="success-criteria-1"><span class="header-section-number">3.2.1</span> Success Criteria</h4>
+<p>Given the absence of existing methods for predicting credits over the limit, the success criteria for the new model will be grounded in the F-1 Score of a dummy classifier. This serves as a pragmatic benchmark for evaluating the model’s performance in comparison to a simple baseline approach.</p>
+<p><strong>Calculating the base-line F-1 score:</strong></p>
+<div class="cell" data-execution_count="8">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>dummy_credit <span class="op">=</span> DummyClassifier(strategy<span class="op">=</span><span class="st">"stratified"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Success F-1 Score:"</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                dummy_credit,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                credit_data.drop(columns<span class="op">=</span><span class="st">"IS_OVER_LIMIT"</span>),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                credit_data[<span class="st">"IS_OVER_LIMIT"</span>],</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"f1"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Success F-1 Score: 0.137</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="goal-3-consumer-loan-fees-prediction" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="goal-3-consumer-loan-fees-prediction"><span class="header-section-number">3.3</span> Goal 3: Consumer Loan Fees Prediction</h3>
+<p>During the EDA it was discovered that different loans come with different fees for the consumer that involve a composite of interest rate and additional fees (<a href="#fig-fees">Figure&nbsp;3</a>). The third model in this project focuses on determining the proportion of these fees specifically for consumer loans, based on the data in the previous application table.</p>
+<div class="cell" data-execution_count="19">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> previous_application.<span class="bu">filter</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">"NAME_CONTRACT_TYPE"</span>) <span class="op">==</span> <span class="st">"Consumer loans"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">&amp;</span> (pl.col(<span class="st">"NAME_CONTRACT_STATUS"</span>) <span class="op">==</span> <span class="st">"Approved"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Irrelevant cols</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.drop(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>[<span class="st">"NAME_YIELD_GROUP"</span>, <span class="st">"NAME_CONTRACT_STATUS"</span>, <span class="st">"NAME_CONTRACT_TYPE"</span>]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    ((pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))).alias(</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FEES_AMT"</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    (</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        (pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">/</span> pl.col(<span class="st">"AMT_CREDIT"</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    ).alias(<span class="st">"FEES_PERCENT"</span>)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>consumer_loans<span class="op">=</span>consumer_loans.drop_nulls(<span class="st">"FEES_PERCENT"</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>fig_fees, ax_fees <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_PERCENT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">0</span>])</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].set_ylabel(<span class="st">"Percentage of Fees"</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].yaxis.set_major_formatter(ticker.PercentFormatter())</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_AMT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">1</span>])</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_yscale(<span class="st">"log"</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_ylabel(<span class="st">"Amount of Fees"</span>)</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-fees" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-fees-output-1.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;3: The proportion and amount of fees that the consumer pays on their consumer loan in the addition to the principal loan amount.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="success-criteria-2" class="level4" data-number="3.3.1">
+<h4 data-number="3.3.1" class="anchored" data-anchor-id="success-criteria-2"><span class="header-section-number">3.3.1</span> Success Criteria</h4>
+<p>Given that the model is intended to serve as a suggestive tool for loan profitability and fee determination, the success criteria will be established based on a baseline. Since there is currently no specific information on how to determine these fees, the baseline will be determined by the RMSE (Root Mean Square Error) from either the overall median or mean of fees, depending on which yields a more favorable result. This approach provides a practical benchmark for assessing the model’s performance in the absence of a predefined fee determination method.</p>
+<div class="cell" data-execution_count="23">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rmse_mean_fees <span class="op">=</span> mean_squared_error(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).mean().alias(<span class="st">"mean"</span>))[<span class="st">"mean"</span>],</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>rmse_median_fees <span class="op">=</span> mean_squared_error(</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).median().alias(<span class="st">"median"</span>))[</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Median Fee:"</span>, <span class="bu">round</span>(rmse_median_fees,<span class="dv">2</span>))</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Mean Fee:"</span>, <span class="bu">round</span>(rmse_mean_fees,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>RMSE from Median Fee: 13.16
+RMSE from Mean Fee: 13.06</code></pre>
+</div>
+</div>
+<p>The base-line RMSE will be 13.06, based on the mean fee RMSE.</p>
+</section>
+</section>
+</section>
+<section id="insights-from-eda" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="insights-from-eda"><span class="header-section-number">4</span> Insights from EDA</h2>
+<section id="application-table-analysis" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="application-table-analysis"><span class="header-section-number">4.1</span> Application table analysis</h3>
+<p>The exploratory data analysis (EDA) conducted, as outlined in the EDA.ipynb file, unveiled several crucial insights into the dataset.</p>
+<ol type="1">
+<li><p>The exploration involved investigating the database schema (<a href="#fig-schema">Figure&nbsp;4</a>). Notably, it was observed that certain features in the main application table could have up to 69% of values missing. The highest occurrences of missing values were found in various home characteristics, such as “common area.”</p></li>
+<li><p>An assessment of the number of references applicants have in other tables revealed that most applicants have information about them in the credit bureau and had previous loan applications.</p></li>
+<li><p>In pursuit of identifying promising features, an initial CatBoost test was performed, and the top 10 features are displayed in <a href="#tbl-initial_features">Table&nbsp;1</a>.</p></li>
+<li><p>The EDA delved into the distributions of these features and their relationships with the target variable. This exploration involved graphical inspection as well as statistical inference using chi-squared and Kruskal-Wallis tests to gauge the direct statistical relationships with the target.</p></li>
+</ol>
+<div id="fig-schema" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_data/home_credit.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;4: Database schema.</figcaption><p></p>
+</figure>
+</div>
+<div class="cell" data-execution_count="24">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>initial_test<span class="op">=</span>joblib.load(<span class="st">'summary_data/initial_test.joblib'</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>eda.table_display(initial_test[<span class="st">"features"</span>][:<span class="dv">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<div id="tbl-initial_features" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;1: Ten most important features based on a quick scan with catboost.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">feature</th>
+<th style="text-align: right;">importance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">EXT_SOURCE_3</td>
+<td style="text-align: right;">9.49508</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">EXT_SOURCE_2</td>
+<td style="text-align: right;">8.94928</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">EXT_SOURCE_1</td>
+<td style="text-align: right;">5.76733</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DAYS_BIRTH</td>
+<td style="text-align: right;">5.26519</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AMT_CREDIT</td>
+<td style="text-align: right;">4.33955</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AMT_ANNUITY</td>
+<td style="text-align: right;">3.99456</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">DAYS_ID_PUBLISH</td>
+<td style="text-align: right;">3.91373</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DAYS_EMPLOYED</td>
+<td style="text-align: right;">3.47728</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">DAYS_LAST_PHONE_CHANGE</td>
+<td style="text-align: right;">3.47288</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AMT_GOODS_PRICE</td>
+<td style="text-align: right;">3.23805</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="credit-bureau-data" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="credit-bureau-data"><span class="header-section-number">4.2</span> Credit Bureau Data</h3>
+<p>During the exploration of the credit bureau data it was determined that:</p>
+<ol type="1">
+<li>Applicants can possess both active and closed credits.</li>
+<li>Active credits exhibit overdue status, with some cases extending over several years.</li>
+<li>Overdue credits vary significantly in terms of currency, ranging from hundreds to millions.</li>
+<li>The credit bureau retains several years’ worth of credit information for each applicant.</li>
+<li>Notably, a majority of the information within the credit bureau has been recently updated.</li>
+<li>The information in credit bureau is in three different currencies, the majority of entries are in currency 1. The currencies differ in scale and there is no information about the exchange rate, therefore only amount information with currency 1 will be aggregated into features.</li>
+</ol>
+</section>
+<section id="previous-application-data" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="previous-application-data"><span class="header-section-number">4.3</span> Previous Application Data</h3>
+<p>During the exploration of previous applications it was determined that:</p>
+<ol type="1">
+<li>Applicants have a history of up to 70 rejected previous applications and up to 30 accepted previous applications.</li>
+<li>Although the majority of previous applications were submitted in the last couple of years, some date back as far as 8 years.</li>
+<li>Instances of late or underpaid installments were observed in some of the previous applications.</li>
+</ol>
+<p>Furthermore, this section gave ideas for two additional goals in this project:</p>
+<ol type="1">
+<li>Goal 2: Credit card balance over limit prediction.</li>
+<li>Goal 3: Consumer loan fee prediction.</li>
+</ol>
+</section>
+</section>
+<section id="feature-generation" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="feature-generation"><span class="header-section-number">5</span> Feature Generation</h2>
+<section id="features-for-model-1-default-risk-prediction" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="features-for-model-1-default-risk-prediction"><span class="header-section-number">5.1</span> Features for Model 1: Default Risk Prediction</h3>
+<p>Feature generation for model 1 can be found as feature_generation_model_1.ipynb</p>
+<p>Aggregating historical and other information about applicants from various tables, including the credit bureau and previous application data, was a crucial step in preparing the data for default risk prediction. The process of aggregation was executed through a series of steps, the details of which are outlined in this section.</p>
+<section id="credit-bureau-data-1" class="level4" data-number="5.1.1">
+<h4 data-number="5.1.1" class="anchored" data-anchor-id="credit-bureau-data-1"><span class="header-section-number">5.1.1</span> Credit Bureau Data</h4>
+<p>Various sets of features were derived from the credit bureau data:</p>
+<ol type="1">
+<li>Numeric variables from the credit bureau table were incorporated as features, utilizing different aggregation methods (mean, min, max, sum, std) after grouping by the current applicant ID. This process was performed both for the entire dataset and separately for active applications.</li>
+<li>The count of credits (active, closed, sold) for each applicant was introduced as additional features.</li>
+<li>The most prevalent credit types for the applicant in the credit bureau were appended as features for both the overall dataset and active applications separately.</li>
+<li>The last balance status for each entry in the bureau was included, and the most common value for each applicant was incorporated as a feature.</li>
+<li>The sum of days past due for each applicant was added as features, considering both the total and active-only applications separately.</li>
+</ol>
+</section>
+<section id="previous-application-data-1" class="level4" data-number="5.1.2">
+<h4 data-number="5.1.2" class="anchored" data-anchor-id="previous-application-data-1"><span class="header-section-number">5.1.2</span> Previous Application Data</h4>
+<p>The features added based on previous applications encompass the following:</p>
+<ol type="1">
+<li>Sum and mean aggregations of previous credits were computed, categorized by status and type.</li>
+<li>The count of accepted and rejected previous applications for each current applicant was introduced as features.</li>
+<li>The total amount remaining to be paid for active previous loan applications was calculated using information from the POS cash balance table and subsequently added as a feature.</li>
+<li>Both the total credit card balance and the total credit card balance exceeding the limit were incorporated as additional features.</li>
+</ol>
+</section>
+<section id="behavioral-data" class="level4" data-number="5.1.3">
+<h4 data-number="5.1.3" class="anchored" data-anchor-id="behavioral-data"><span class="header-section-number">5.1.3</span> Behavioral Data</h4>
+<p>Various aggregations (mean, max, sum) of days overdue and the amount underpaid for previous installments were introduced as features.</p>
+</section>
+<section id="initial-feature-selection" class="level4" data-number="5.1.4">
+<h4 data-number="5.1.4" class="anchored" data-anchor-id="initial-feature-selection"><span class="header-section-number">5.1.4</span> Initial Feature Selection:</h4>
+<p>After the feature generation phase, a total of 289 independent variables were amassed. Recognizing that some of these variables might not contribute significant value and aiming to enhance the efficiency of subsequent feature selection and modeling steps, initial quick feature elimination was undertaken. This process involved assessing variance and identifying potential collinearity among variables, facilitating the identification and removal of redundant or less informative features.</p>
+<section id="low-variance-features" class="level5">
+<h5 class="anchored" data-anchor-id="low-variance-features">Low Variance Features</h5>
+<p>Several Boolean features were subjected to removal based on low variance, with the variance threshold set below 0.001. The largest minority class within this subset of features contained 183 samples.</p>
+</section>
+<section id="highly-correlated-features" class="level5">
+<h5 class="anchored" data-anchor-id="highly-correlated-features">Highly Correlated Features</h5>
+<p>To address high multicollinearity, a pragmatic approach was adopted, acknowledging that interpretability was not the primary goal. A notably high threshold of 0.999 for Spearman’s rank coefficient was selected. The aim was to eliminate only those features that conveyed nearly identical information, considering that certain features might have been generated using similar aggregation techniques.</p>
+<p>The identification of clusters of multicollinear features was accomplished through correlating pair clustering using the NetworkX library. Subsequently, only the first member of each cluster was retained, and the others were removed.</p>
+<p>After initial feature selection there were 232 features left.</p>
+</section>
+</section>
+<section id="feature-generation-model-2-credit-card-over-limit-prediction" class="level4" data-number="5.1.5">
+<h4 data-number="5.1.5" class="anchored" data-anchor-id="feature-generation-model-2-credit-card-over-limit-prediction"><span class="header-section-number">5.1.5</span> Feature Generation Model 2: Credit Card Over Limit Prediction</h4>
+</section>
+</section>
+<section id="modeling" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="modeling"><span class="header-section-number">5.2</span> Modeling</h3>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
