@@ -159,3 +159,55 @@ def table_display(table: pl.DataFrame):
             tablefmt="pipe",
         )
     )
+
+
+def weekday_cyclic_features(data: pl.DataFrame, col: str) -> pl.DataFrame:
+    """
+    Create cyclic features for the weekday from a string column.
+
+    This function takes a Polars DataFrame and a column containing weekday
+    values in string format (e.g., "MONDAY", "TUESDAY", etc.).
+    It adds two new columns, 'weekday_sin' and 'weekday_cos', which represent
+    the weekday cyclically using sine and cosine functions.
+
+    Parameters:
+    -----------
+    data : pl.DataFrame
+        The input Polars DataFrame containing weekday values in string format.
+    col : str
+        The name of the column containing weekday values.
+
+    Returns:
+    --------
+    data : pl.DataFrame
+        The input Polars DataFrame with added 'weekday_sin'
+        and 'weekday_cos' features.
+    """
+    weekdays = [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY",
+    ]
+
+    data = data.with_columns(
+        pl.col(col)
+        .map_elements(
+            lambda x: weekdays.index(x.upper())
+        )  # Convert weekday string to index
+        .map_elements(lambda x: np.sin(x / 7 * 2 * np.pi))
+        .alias("weekday_sin")
+    )
+    data = data.with_columns(
+        pl.col(col)
+        .map_elements(
+            lambda x: weekdays.index(x.upper())
+        )  # Convert weekday string to index
+        .map_elements(lambda x: np.cos(x / 7 * 2 * np.pi))
+        .alias("weekday_cos")
+    )
+    data = data.drop(col)
+    return data

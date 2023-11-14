@@ -162,7 +162,9 @@ class PolarsColumnTransformer(BaseEstimator, TransformerMixin):
     """
 
     class Step:
-        def __init__(self, name, transformer, col) -> None:
+        def __init__(
+            self, name: str, transformer, col: Union[str, Iterable[str]]
+        ) -> None:
             """
             Initialize a transformation step.
 
@@ -214,7 +216,10 @@ class PolarsColumnTransformer(BaseEstimator, TransformerMixin):
             --------
             Transformed data.
             """
-            return self.transformer.transform(X)
+            X = self.transformer.transform(X)
+            if not isinstance(X, (pl.DataFrame, pl.Series)):
+                X = pl.DataFrame(X, schema=self.col)
+            return X
 
     def __init__(self, steps: Iterable[Step], step_params={}):
         """
@@ -1009,4 +1014,5 @@ class PolarsNullImputer(BaseEstimator, TransformerMixin):
         for col in bool_cols:
             X = X.with_columns(pl.col(col).cast(pl.Int32).alias(col))
         X = X.fill_null(self.fill_value)
+        X = X.fill_nan(self.fill_value)
         return X
