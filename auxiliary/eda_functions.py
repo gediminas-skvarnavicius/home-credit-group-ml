@@ -1,12 +1,12 @@
 import polars as pl
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve
 from catboost import CatBoostClassifier
 from sklearn.model_selection import StratifiedKFold
 from IPython.display import Markdown
 from tabulate import tabulate
-from pandas import Series
 import numpy as np
-from typing import Union
+from typing import Union, Tuple, List
+import matplotlib.pyplot as plt
 
 
 def test_with_catboost_crossval(
@@ -211,3 +211,89 @@ def weekday_cyclic_features(data: pl.DataFrame, col: str) -> pl.DataFrame:
     )
     data = data.drop(col)
     return data
+
+
+def hour_cyclic_features(data: pl.DataFrame, col: str) -> pl.DataFrame:
+    """
+    Create cyclic features for the hour from an integer column.
+
+    This function takes a Polars DataFrame and a column containing hour values
+    in 24-hour format (1 to 24).
+    It adds two new columns, 'hour_sin' and 'hour_cos', which represent the hour
+    cyclically using sine and cosine functions. These features can help capture the
+    cyclical patterns in daily data.
+
+    Parameters:
+    -----------
+    data : pl.DataFrame
+        The input Polars DataFrame containing hour values in 24-hour format.
+    col : str
+        The name of the column containing hour values.
+
+    Returns:
+    --------
+    data : pl.DataFrame
+        The input Polars DataFrame with added 'hour_sin' and 'hour_cos' features.
+    """
+    data = data.with_columns(
+        pl.col(col)
+        .map_elements(lambda x: np.sin((x - 1) / 24 * 2 * np.pi))
+        .alias("hour_sin")
+    )
+    data = data.with_columns(
+        pl.col(col)
+        .map_elements(lambda x: np.cos((x - 1) / 24 * 2 * np.pi))
+        .alias("hour_cos")
+    )
+    data = data.drop(col)
+    return data
+
+
+def plot_roc_curve(
+    y_test: Union[List[int], np.ndarray],
+    predictions: Union[List[float], np.ndarray],
+    ax: plt.Axes = None,
+    **subplots_kwargs,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Plots the Receiver Operating Characteristic (ROC) curve with the
+    Area Under the Curve (AUC) score.
+
+    Parameters:
+        y_test (List[int] or np.ndarray):
+        True binary labels for the test set.
+
+        predictions (List[float] or np.ndarray):
+        Predicted probabilities for the positive class.
+
+        base_fig_width (int, optional):
+        Width of the generated plot in inches. Default is 8.
+
+        base_fig_height (int, optional):
+        Height of the generated plot in inches. Default is 6.
+
+    Returns:
+        Tuple[plt.Figure, plt.Axes]:
+        The generated matplotlib Figure and Axes objects.
+
+    Example:
+        y_test = [0, 1, 1, 0, 1]
+        predictions = [0.1, 0.8, 0.6, 0.2, 0.9]
+        fig, ax = plot_roc_curve(y_test, predictions)
+        plt.show()
+    """
+    fpr, tpr, thresholds = roc_curve(y_test, predictions)
+    auc_score = roc_auc_score(y_test, predictions)
+
+    if ax:
+        ax_combo_roc = ax
+    else:
+        fig_combo_roc, ax_combo_roc = plt.subplots(**subplots_kwargs)
+    ax_combo_roc.plot(fpr, tpr, label="ROC curve (AUC = %0.2f)" % auc_score)
+    ax_combo_roc.plot([0, 1], [0, 1], "k--")  # Random guessing line
+    ax_combo_roc.set_xlabel("False Positive Rate")
+    ax_combo_roc.set_ylabel("True Positive Rate")
+    ax_combo_roc.legend(loc="lower right")
+
+    if not ax:
+        return fig_combo_roc, ax_combo_roc

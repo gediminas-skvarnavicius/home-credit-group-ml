@@ -791,10 +791,13 @@ class SamplingModelWrapper(BaseEstimator, TransformerMixin):
             elif self.sampler == "random":
                 self.transformer = RandomOverSampler(random_state=1)
             if isinstance(X, (pl.DataFrame, pl.Series)):
+                cols = X.columns
                 X, y = self.transformer.fit_resample(
                     X.to_numpy(),
                     y.to_numpy(),
                 )
+                X = pl.DataFrame(X, schema=cols)
+            else:
                 X, y = self.transformer.fit_resample(X, y)
         self.model.fit(X, y)
         return self

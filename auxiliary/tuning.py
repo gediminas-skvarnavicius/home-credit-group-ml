@@ -52,9 +52,9 @@ def objective(
     if metric == "f1":
         score = f1_score(y_val, preds)
 
-    if metric == "mse":
-        score = -mean_squared_error(y_val, preds)
-    print(f"Step {n} F-1 Score: {score}")
+    if metric == "rmse":
+        score = -mean_squared_error(y_val, preds, squared=False)
+    print(f"Step {n} Score: {score}")
     return score
 
 
@@ -330,6 +330,19 @@ class Models:
                 for train_index, test_index in cv.split(X, y)
             )
 
+            return scores
+
+        def cross_val_mse(self, X, y, n: int = 5, **kwargs):
+            cv = KFold(n)
+            scores = []
+            for train_index, test_index in cv.split(X, y):
+                self.pipeline.fit(X[train_index], y[train_index])
+                score = mean_squared_error(
+                    y[test_index],
+                    self.pipeline.predict(X[test_index]),
+                    **kwargs,
+                )
+                scores.append(score)
             return scores
 
     def add_model(

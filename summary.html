@@ -102,6 +102,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#model-1-credit-default-risk." id="toc-model-1-credit-default-risk." class="nav-link" data-scroll-target="#model-1-credit-default-risk."><span class="header-section-number">5.1</span> Model 1: Credit Default Risk.</a></li>
   <li><a href="#feature-importance-interpretation" id="toc-feature-importance-interpretation" class="nav-link" data-scroll-target="#feature-importance-interpretation"><span class="header-section-number">5.2</span> Feature Importance Interpretation</a></li>
+  <li><a href="#model-2-credit-card-over-limit" id="toc-model-2-credit-card-over-limit" class="nav-link" data-scroll-target="#model-2-credit-card-over-limit"><span class="header-section-number">5.3</span> Model 2: Credit Card Over-Limit</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -126,7 +127,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p><strong>Imports and settings:</strong></p>
-<div class="cell" data-execution_count="15">
+<div class="cell" data-execution_count="1">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>reload_ext autoreload</span>
@@ -154,18 +155,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>aimport auxiliary.eda_functions</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>sns.<span class="bu">set</span>()</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>BASE_FIG_SIZE<span class="op">=</span>(<span class="fl">8.5</span>,<span class="fl">4.5</span>)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>ALPHA<span class="op">=</span><span class="fl">0.05</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>application_train<span class="op">=</span>pl.read_csv(<span class="st">'data/application_train.csv'</span>)</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>bureau_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau_balance.csv'</span>)</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>bureau<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau.csv'</span>)</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>installments_payments<span class="op">=</span>pl.read_csv(<span class="st">'data/installments_payments.csv'</span>)</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>POS_CASH_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/POS_CASH_balance.csv'</span>)</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>previous_application<span class="op">=</span>pl.read_csv(<span class="st">'data/previous_application.csv'</span>)</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>credit_card_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/credit_card_balance.csv'</span>)</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>credit_data <span class="op">=</span> pl.read_parquet(<span class="st">"temp/active_credit_cards.parquet"</span>)</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>id_and_target<span class="op">=</span>[<span class="st">"SK_ID_CURR"</span>, <span class="st">"TARGET"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>sns.<span class="bu">set</span>(font_scale<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>BASE_FIG_SIZE<span class="op">=</span>(<span class="fl">8.5</span>,<span class="fl">4.5</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>ALPHA<span class="op">=</span><span class="fl">0.05</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>application_train<span class="op">=</span>pl.read_csv(<span class="st">'data/application_train.csv'</span>)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>bureau_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau_balance.csv'</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>bureau<span class="op">=</span>pl.read_csv(<span class="st">'data/bureau.csv'</span>)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>installments_payments<span class="op">=</span>pl.read_csv(<span class="st">'data/installments_payments.csv'</span>)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>POS_CASH_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/POS_CASH_balance.csv'</span>)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>previous_application<span class="op">=</span>pl.read_csv(<span class="st">'data/previous_application.csv'</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>credit_card_balance<span class="op">=</span>pl.read_csv(<span class="st">'data/credit_card_balance.csv'</span>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>credit_data <span class="op">=</span> pl.read_parquet(<span class="st">"temp/active_credit_cards.parquet"</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>id_and_target<span class="op">=</span>[<span class="st">"SK_ID_CURR"</span>, <span class="st">"TARGET"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Using `tqdm.autonotebook.tqdm` in notebook mode. Use `tqdm.tqdm` instead to force console mode (e.g. in jupyter console)</code></pre>
@@ -180,7 +182,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 data-number="2.1" class="anchored" data-anchor-id="goal-1-credit-default-risk"><span class="header-section-number">2.1</span> Goal 1: Credit Default Risk</h3>
 <p>The primary objective of the first model is to predict whether the applicant will encounter challenges in repaying the loan.</p>
 <p><strong>Displaying the target class balance:</strong></p>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="2">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig_target_balance, ax_target_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
@@ -210,7 +212,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 data-number="2.1.1" class="anchored" data-anchor-id="success-criteria"><span class="header-section-number">2.1.1</span> Success Criteria</h4>
 <p>During the Exploratory Data Analysis, it was revealed that the company leverages three external data sources, incurring associated costs. The external data, being scaled and exhibiting an approximately normal distribution, serves as the basis for establishing a success baseline. To gauge this baseline, a rudimentary classifier is applied to the data, and its performance is evaluated. Given the simplicity and effectiveness of logistic regression with this data – achievable with just a single line of code – it is considered a current attainable benchmark for the company.</p>
 <p><strong>Logistic Regression ROC AUC score based on external data:</strong></p>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="3">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>imputer <span class="op">=</span> SimpleImputer()</span>
@@ -240,7 +242,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="goal-2-credit-over-limit-prediction" class="level3" data-number="2.2">
 <h3 data-number="2.2" class="anchored" data-anchor-id="goal-2-credit-over-limit-prediction"><span class="header-section-number">2.2</span> Goal 2: Credit Over Limit Prediction</h3>
 <p>During the EDA it was noted that some credit cards are over balance limit for the current month <a href="#fig-over-limit">Figure&nbsp;2</a>. Therefore, as an additional benefit, the construction of a model aiming to predict whether the current month’s credit balance will exceed the limit for a specific credit card offers valuable advantages. This model can serve to proactively issue warnings to credit card holders, providing them with timely alerts. Simultaneously, it enables the company to assess and manage internal capital risks more effectively by anticipating and addressing potential over-limit situations before they occur.</p>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig_balance, ax_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
@@ -289,7 +291,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 data-number="2.2.1" class="anchored" data-anchor-id="success-criteria-1"><span class="header-section-number">2.2.1</span> Success Criteria</h4>
 <p>Given the absence of existing methods for predicting credits over the limit, the success criteria for the new model will be grounded in the F-1 Score of a dummy classifier. This serves as a pragmatic benchmark for evaluating the model’s performance in comparison to a simple baseline approach.</p>
 <p><strong>Calculating the base-line F-1 score:</strong></p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="5">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dummy_credit <span class="op">=</span> DummyClassifier(strategy<span class="op">=</span><span class="st">"stratified"</span>)</span>
@@ -308,7 +310,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Success F-1 Score: 0.134</code></pre>
+<pre><code>Success F-1 Score: 0.136</code></pre>
 </div>
 </div>
 </section>
@@ -316,7 +318,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="goal-3-consumer-loan-fees-prediction" class="level3" data-number="2.3">
 <h3 data-number="2.3" class="anchored" data-anchor-id="goal-3-consumer-loan-fees-prediction"><span class="header-section-number">2.3</span> Goal 3: Consumer Loan Fees Prediction</h3>
 <p>During the EDA it was discovered that different loans come with different fees for the consumer that involve a composite of interest rate and additional fees (<a href="#fig-fees">Figure&nbsp;3</a>). The third model in this project focuses on determining the proportion of these fees specifically for consumer loans, based on the data in the previous application table.</p>
-<div class="cell" data-execution_count="8">
+<div class="cell" data-execution_count="6">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> previous_application.<span class="bu">filter</span>(</span>
@@ -368,7 +370,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="success-criteria-2" class="level4" data-number="2.3.1">
 <h4 data-number="2.3.1" class="anchored" data-anchor-id="success-criteria-2"><span class="header-section-number">2.3.1</span> Success Criteria</h4>
 <p>Given that the model is intended to serve as a suggestive tool for loan profitability and fee determination, the success criteria will be established based on a baseline. Since there is currently no specific information on how to determine these fees, the baseline will be determined by the RMSE (Root Mean Square Error) from either the overall median or mean of fees, depending on which yields a more favorable result. This approach provides a practical benchmark for assessing the model’s performance in the absence of a predefined fee determination method.</p>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="7">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>rmse_mean_fees <span class="op">=</span> mean_squared_error(</span>
@@ -414,13 +416,13 @@ RMSE from Mean Fee: 13.06</code></pre>
 <p></p><figcaption class="figure-caption">Figure&nbsp;4: Database schema.</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="8">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>initial_test<span class="op">=</span>joblib.load(<span class="st">'summary_data/initial_test.joblib'</span>)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>eda.table_display(initial_test[<span class="st">"features"</span>][:<span class="dv">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <div id="tbl-initial_features" class="anchored">
 <table class="table table-sm table-striped small">
 <caption>Table&nbsp;1: Ten most important features based on a quick scan with catboost.</caption>
@@ -579,8 +581,8 @@ RMSE from Mean Fee: 13.06</code></pre>
 </section>
 <section id="initial-feature-selection-1" class="level4" data-number="4.2.6">
 <h4 data-number="4.2.6" class="anchored" data-anchor-id="initial-feature-selection-1"><span class="header-section-number">4.2.6</span> Initial Feature Selection</h4>
-<p>Features with extremely low variance and those that carried identical information to each other were removed, streamlining the dataset and enhancing efficiency for subsequent feature selection and modeling steps.</p>
-<p>A total of 73 features was gathered.</p>
+<p>The features were filtered for low variance and high multicollinearity.</p>
+<p>A total of 61 features was gathered.</p>
 </section>
 </section>
 <section id="model-3-consumer-loan-fees" class="level3" data-number="4.3">
@@ -620,7 +622,7 @@ RMSE from Mean Fee: 13.06</code></pre>
 <h4 data-number="5.1.4" class="anchored" data-anchor-id="hyperparameter-tuning-and-model-selection"><span class="header-section-number">5.1.4</span> Hyperparameter Tuning and Model Selection</h4>
 <p>Hyperparameter tuning was executed with the Ray-Tune library using the Optuna algorithm. The primary metric for tuning was ROC-AUC, evaluated with up to 5 stratified k-fold cross-validations for each promising trial. The full training set was utilized for this process, with the exception of the RGF model, where a subsample of 100,000 was employed.</p>
 <p>The models’ performance was evaluated alongside a stacked model incorporating all three models (<a href="#fig-model1-selection">Figure&nbsp;5</a>). The Regularized Greedy Forest (RGF) model demonstrated the most success, attributed to its superior performance and stability.</p>
-<div class="cell" data-execution_count="14">
+<div class="cell" data-execution_count="9">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span><span class="pp">UserWarning</span>)</span>
@@ -666,7 +668,7 @@ RMSE from Mean Fee: 13.06</code></pre>
 <li><p><strong>Sum of Current Debt:</strong> Total current debt is an influential predictor.</p></li>
 </ol>
 <p>Additionally, SHAP value analysis for a subset highlighted the importance of when the applicant last changed their ID and the type of organization where the client works and the count of active credits from the credit bureau.</p>
-<div class="cell" data-execution_count="20">
+<div class="cell" data-execution_count="10">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>shap_model1<span class="op">=</span>joblib.load(<span class="st">"summary_data/shap_model1.joblib"</span>)</span>
@@ -686,6 +688,101 @@ RMSE from Mean Fee: 13.06</code></pre>
 </div>
 </div>
 </div>
+</section>
+<section id="model-2-credit-card-over-limit" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="model-2-credit-card-over-limit"><span class="header-section-number">5.3</span> Model 2: Credit Card Over-Limit</h3>
+<p>The notebook for this section can be found as model_2_credit_limit.ipynb</p>
+<p>Given the nature of this problem involving both categorical and numerical features, along with missing values and a non-parametric distribution of numeric features, the LightGBM model was selected. This choice was driven by its precision, speed, and robustness across diverse types of data, making it well-suited for the complexities of this particular task.</p>
+<section id="preprocessing-pipeline-1" class="level4" data-number="5.3.1">
+<h4 data-number="5.3.1" class="anchored" data-anchor-id="preprocessing-pipeline-1"><span class="header-section-number">5.3.1</span> Preprocessing Pipeline</h4>
+<p>For model 2, a similar preprocessing approach was adopted, treating missing values as separate categories. The notable addition was the inclusion of MinMax Scaler to leverage advanced oversampling techniques like SMOTE or ADASYN. The preprocessing steps are as follows:</p>
+<ol type="1">
+<li><p><strong>Weekday Cyclical Encoding:</strong> Encode weekdays using sine and cosine functions to capture cyclical patterns.</p></li>
+<li><p><strong>One-Hot Encoding for Boolean Features:</strong> Transform boolean features into binary representations using one-hot encoding.</p></li>
+<li><p><strong>Labeling Categorical Features:</strong> Assign numerical labels to categorical features based on the target mean in the training set.</p></li>
+<li><p><strong>Min Max Scaler:</strong> Apply MinMax scaling to standardize all data.</p></li>
+<li><p><strong>Null Imputer:</strong> Impute null values with -1.</p></li>
+<li><p><strong>Feature Removal Transformer:</strong> Integrate a feature removal transformer into the pipeline for testing different feature subsets during parameter tuning.</p></li>
+<li><p><strong>Oversampling Technique:</strong> Optional oversampling techniques, including random oversampling, SMOTE, and ADASYN, are incorporated into the pipeline. The choice is tuned alongside hyperparameters for each model.</p></li>
+</ol>
+</section>
+<section id="feature-selection-1" class="level4" data-number="5.3.2">
+<h4 data-number="5.3.2" class="anchored" data-anchor-id="feature-selection-1"><span class="header-section-number">5.3.2</span> Feature Selection</h4>
+<p>Similar to the previous section, feature selection was conducted using Boruta SHAP. Multiple runs with varying strictness (percentiles ranging from 20 to 100) were executed, generating lists of features to be removed. During the tuning process, the selection of features to be removed was performed in conjunction with model hyperparameters, optimizing the overall performance of the model.</p>
+</section>
+<section id="hyperparameter-tuning" class="level4" data-number="5.3.3">
+<h4 data-number="5.3.3" class="anchored" data-anchor-id="hyperparameter-tuning"><span class="header-section-number">5.3.3</span> Hyperparameter Tuning</h4>
+<p>The hyperparameters were fine-tuned using the Ray-Tune library and the Optuna algorithm for optimization. Model evaluation relied on 5-fold stratified cross-validation, emphasizing the F1-score for the positive class (credit card over-limit) as the primary metric. Optimal choices included 35 feature removal, oversampling with ADASYN, and LightGBM with the DART algorithm.</p>
+</section>
+<section id="model-testing-1" class="level4" data-number="5.3.4">
+<h4 data-number="5.3.4" class="anchored" data-anchor-id="model-testing-1"><span class="header-section-number">5.3.4</span> Model Testing</h4>
+<p>The model achieved an F1-Score of 0.63 greatly beating our previously set base line and success criteria of 0.128. The model performed better at identifying the majority class (credit card balance within limits) as seen in <a href="#fig-confusion-credit">Figure&nbsp;7</a>.</p>
+<div class="cell" data-execution_count="11">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>confusion <span class="op">=</span> joblib.load(<span class="st">"summary_data/model2_confusion.joblib"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>class_labels <span class="op">=</span> [<span class="st">"Within Limits"</span>, <span class="st">"Over-Limit"</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    confusion,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">".1%"</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"Blues"</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    linewidths<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    cbar<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    xticklabels<span class="op">=</span>class_labels,</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    yticklabels<span class="op">=</span>class_labels,</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Predicted Labels"</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"True Labels"</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-confusion-credit" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-confusion-credit-output-1.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;7: The confusion matrix of model 2, normalized by class size.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="feature-importance" class="level4" data-number="5.3.5">
+<h4 data-number="5.3.5" class="anchored" data-anchor-id="feature-importance"><span class="header-section-number">5.3.5</span> Feature Importance</h4>
+<p>The analysis of feature importance using SHAP values (<a href="#fig-model2-shap">Figure&nbsp;8</a>) revealed the following key factors:</p>
+<ol type="1">
+<li><p><strong>Installment Size:</strong> Higher installments correlated with a higher likelihood of credit cards going over the limit.</p></li>
+<li><p><strong>Credit Card Limits:</strong> Credit cards with larger limits exhibited a lower tendency to go over the limit.</p></li>
+<li><p><strong>Historic Over-Limit Data:</strong> The frequency of past instances of going over the limit, as well as the sum and mean of the amount over the limit, indicated a higher probability of exceeding the limit in the current month.</p></li>
+<li><p><strong>Length of Credit Card History (HISTORIC_NUM_ENTRIES):</strong> A longer credit card history suggested greater trustworthiness.</p></li>
+<li><p><strong>Income:</strong> Larger incomes were associated with better financial discipline.</p></li>
+<li><p><strong>Amount Annuity:</strong> Values for annuity had non-obvious directional trends, possibly contributing as a conditional feature.</p></li>
+</ol>
+<div class="cell" data-execution_count="15">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model2_shap<span class="op">=</span>joblib.load(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"summary_data/shap_model2.joblib"</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>shap.summary_plot(</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">"shap_vales"</span>],</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">'sample_data'</span>].to_numpy(),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    feature_names<span class="op">=</span>model2_shap[<span class="st">"names"</span>],</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    max_display<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-model2-shap" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-model2-shap-output-1.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;8: SHAP values of ten most valuable features in the credit card limit model.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
 </section>
 </section>
 
