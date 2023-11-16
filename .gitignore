@@ -9,3 +9,11 @@ auxiliary/__pycache__/tuning.cpython-39.pyc
 auxiliary/__pycache__/statistics.cpython-39.pyc
 mlruns
 lgbm_sumbission.csv
+deployment/app/model_files/auxiliary/__pycache__/
+deployment/app/__pycache__/
+deployment/app/auxiliary/__pycache__/
+deployment/app/model_files/__pycache__/
+deployment/backend/app/model_files/__pycache__/
+deployment/backend/app/auxiliary/__pycache__/
+deployment/backend/app/__pycache__/
+deployment/frontend/app/__pycache__/

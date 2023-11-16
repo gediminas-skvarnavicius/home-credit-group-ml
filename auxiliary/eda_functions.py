@@ -219,10 +219,8 @@ def hour_cyclic_features(data: pl.DataFrame, col: str) -> pl.DataFrame:
 
     This function takes a Polars DataFrame and a column containing hour values
     in 24-hour format (1 to 24).
-    It adds two new columns, 'hour_sin' and 'hour_cos', which represent the hour
-    cyclically using sine and cosine functions. These features can help capture the
-    cyclical patterns in daily data.
-
+    It adds two new columns, 'hour_sin' and 'hour_cos', which represent
+    the hour cyclically using sine and cosine functions.
     Parameters:
     -----------
     data : pl.DataFrame
@@ -233,7 +231,7 @@ def hour_cyclic_features(data: pl.DataFrame, col: str) -> pl.DataFrame:
     Returns:
     --------
     data : pl.DataFrame
-        The input Polars DataFrame with added 'hour_sin' and 'hour_cos' features.
+        The input Polars DataFrame with 'hour_sin' and 'hour_cos' features.
     """
     data = data.with_columns(
         pl.col(col)

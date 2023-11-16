@@ -1,0 +1,5 @@
+fastapi==0.103.1
+pydantic==2.4.2
+numpy == 1.24.4
+uvicorn == 0.23.2
+streamlit == 1.28.2
