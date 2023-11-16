@@ -79,7 +79,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a>
+  <ul class="collapse">
+  <li><a href="#tools-and-methods" id="toc-tools-and-methods" class="nav-link" data-scroll-target="#tools-and-methods"><span class="header-section-number">1.1</span> Tools and Methods</a></li>
+  </ul></li>
   <li><a href="#project-goals" id="toc-project-goals" class="nav-link" data-scroll-target="#project-goals"><span class="header-section-number">2</span> Project Goals:</a>
   <ul class="collapse">
   <li><a href="#goal-1-credit-default-risk" id="toc-goal-1-credit-default-risk" class="nav-link" data-scroll-target="#goal-1-credit-default-risk"><span class="header-section-number">2.1</span> Goal 1: Credit Default Risk</a></li>
@@ -103,6 +106,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#model-1-credit-default-risk." id="toc-model-1-credit-default-risk." class="nav-link" data-scroll-target="#model-1-credit-default-risk."><span class="header-section-number">5.1</span> Model 1: Credit Default Risk.</a></li>
   <li><a href="#feature-importance-interpretation" id="toc-feature-importance-interpretation" class="nav-link" data-scroll-target="#feature-importance-interpretation"><span class="header-section-number">5.2</span> Feature Importance Interpretation</a></li>
   <li><a href="#model-2-credit-card-over-limit" id="toc-model-2-credit-card-over-limit" class="nav-link" data-scroll-target="#model-2-credit-card-over-limit"><span class="header-section-number">5.3</span> Model 2: Credit Card Over-Limit</a></li>
+  <li><a href="#model-3-consumer-loan-fee-prediction" id="toc-model-3-consumer-loan-fee-prediction" class="nav-link" data-scroll-target="#model-3-consumer-loan-fee-prediction"><span class="header-section-number">5.4</span> Model 3: Consumer Loan Fee Prediction</a></li>
+  </ul></li>
+  <li><a href="#deployment" id="toc-deployment" class="nav-link" data-scroll-target="#deployment"><span class="header-section-number">6</span> Deployment</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions"><span class="header-section-number">7</span> Conclusions</a>
+  <ul class="collapse">
+  <li><a href="#further-improvements" id="toc-further-improvements" class="nav-link" data-scroll-target="#further-improvements"><span class="header-section-number">7.1</span> Further Improvements</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -127,7 +136,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p><strong>Imports and settings:</strong></p>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="18">
 <details>
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>reload_ext autoreload</span>
@@ -169,12 +178,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>credit_data <span class="op">=</span> pl.read_parquet(<span class="st">"temp/active_credit_cards.parquet"</span>)</span>
 <span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>id_and_target<span class="op">=</span>[<span class="st">"SK_ID_CURR"</span>, <span class="st">"TARGET"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Using `tqdm.autonotebook.tqdm` in notebook mode. Use `tqdm.tqdm` instead to force console mode (e.g. in jupyter console)</code></pre>
-</div>
 </div>
 <section id="introduction" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
+<p>This project focuses on analyzing the Home Credit Group dataset, which is available <a href="https://storage.googleapis.com/341-home-credit-default/home-credit-default-risk.zip">here</a>. Home Credit Group, an international consumer finance provider, faces the challenge of assessing credit default risk for new applicants. The primary objective of this project is to develop machine learning models to address this challenge. Additionally, the project explores other potential areas where machine learning can enhance various aspects of the company’s business operations.</p>
+<section id="tools-and-methods" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="tools-and-methods"><span class="header-section-number">1.1</span> Tools and Methods</h3>
+<p>This project involves the application of various data science tools and methods to address the challenges presented by the Home Credit Group dataset:</p>
+<ul>
+<li><p><strong>Exploratory Data Analysis (EDA):</strong> Matplotlib, Seaborn, and Polars libraries were used for EDA to analyze and visualize the dataset’s characteristics and identify patterns.</p></li>
+<li><p><strong>Feature Generation:</strong> Polars was utilized for feature generation from different data sources, contributing to the creation of relevant features for subsequent modeling.</p></li>
+<li><p><strong>Preprocessing Pipelines:</strong> The preprocessing pipelines were developed based on the sklearn framework. Custom tools were created to maintain the Polars dataframe format up to the model, ensuring compatibility with the sklearn Pipeline format and preventing data leakage.</p></li>
+<li><p><strong>Hyperparameter Tuning:</strong> Ray-Tune library facilitated the hyperparameter tuning process, allowing parallelization and early stopping for efficiency, especially with larger datasets.</p></li>
+<li><p><strong>Feature Selection:</strong> BorutaShap library, combining the Boruta algorithm and Shap values, was employed for feature selection, helping to identify important features for modeling.</p></li>
+<li><p><strong>Modeling:</strong> Sklearn and LightGBM models were applied for building predictive models to assess credit default risk, predict credit card over-limit situations, and determine consumer loan fees.</p></li>
+<li><p><strong>Feature Importance Evaluation:</strong> The Shap library was used to evaluate feature importance, providing insights into the variables influencing model predictions.</p></li>
+<li><p><strong>Model Deployment:</strong> FastAPI and Pydantic modules were employed for building the backend of the deployment. Streamlit was used for frontend development. Docker facilitated the containerization of both backend and frontend components.</p></li>
+<li><p><strong>Cloud Platform:</strong> Google Cloud Platform Artifact Registry and Run tools were utilized for the final deployment of the models.</p></li>
+</ul>
+</section>
 </section>
 <section id="project-goals" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="project-goals"><span class="header-section-number">2</span> Project Goals:</h2>
@@ -182,22 +204,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 data-number="2.1" class="anchored" data-anchor-id="goal-1-credit-default-risk"><span class="header-section-number">2.1</span> Goal 1: Credit Default Risk</h3>
 <p>The primary objective of the first model is to predict whether the applicant will encounter challenges in repaying the loan.</p>
 <p><strong>Displaying the target class balance:</strong></p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="19">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig_target_balance, ax_target_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    [application_train[<span class="st">"TARGET"</span>].<span class="bu">sum</span>(), <span class="bu">len</span>(application_train[<span class="st">"TARGET"</span>])],</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_target_balance,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>ax_target_balance.yaxis.set_major_formatter(</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticks([<span class="dv">0</span>,<span class="dv">1</span>])</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticklabels([<span class="st">'Had Difficulties'</span>,<span class="st">'No Difficulties'</span>])</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_ylabel(<span class="st">'Count'</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>fig_target_balance.savefig(<span class="st">'summary_data/target_balance_chart.png'</span>)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig_target_balance, ax_target_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sns.barplot(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    [application_train[<span class="st">"TARGET"</span>].<span class="bu">sum</span>(), <span class="bu">len</span>(application_train[<span class="st">"TARGET"</span>])],</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_target_balance,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>ax_target_balance.yaxis.set_major_formatter(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticks([<span class="dv">0</span>,<span class="dv">1</span>])</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_xticklabels([<span class="st">'Had Difficulties'</span>,<span class="st">'No Difficulties'</span>])</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>ax_target_balance.set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>fig_target_balance.savefig(<span class="st">'summary_data/target_balance_chart.png'</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-target_balance" class="quarto-figure quarto-figure-center anchored">
@@ -212,25 +234,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 data-number="2.1.1" class="anchored" data-anchor-id="success-criteria"><span class="header-section-number">2.1.1</span> Success Criteria</h4>
 <p>During the Exploratory Data Analysis, it was revealed that the company leverages three external data sources, incurring associated costs. The external data, being scaled and exhibiting an approximately normal distribution, serves as the basis for establishing a success baseline. To gauge this baseline, a rudimentary classifier is applied to the data, and its performance is evaluated. Given the simplicity and effectiveness of logistic regression with this data – achievable with just a single line of code – it is considered a current attainable benchmark for the company.</p>
 <p><strong>Logistic Regression ROC AUC score based on external data:</strong></p>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="20">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>imputer <span class="op">=</span> SimpleImputer()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>log_reg_model <span class="op">=</span> LogisticRegression(class_weight<span class="op">=</span><span class="st">"balanced"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> Pipeline([(<span class="st">"imputer"</span>, imputer), (<span class="st">"model"</span>, log_reg_model)])</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                pipeline,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                application_train[[<span class="st">"EXT_SOURCE_1"</span>, <span class="st">"EXT_SOURCE_2"</span>, <span class="st">"EXT_SOURCE_3"</span>]],</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                application_train[<span class="st">"TARGET"</span>],</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"roc_auc"</span>,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>imputer <span class="op">=</span> SimpleImputer()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>log_reg_model <span class="op">=</span> LogisticRegression(class_weight<span class="op">=</span><span class="st">"balanced"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> Pipeline([(<span class="st">"imputer"</span>, imputer), (<span class="st">"model"</span>, log_reg_model)])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                pipeline,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                application_train[[<span class="st">"EXT_SOURCE_1"</span>, <span class="st">"EXT_SOURCE_2"</span>, <span class="st">"EXT_SOURCE_3"</span>]],</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>                application_train[<span class="st">"TARGET"</span>],</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"roc_auc"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>0.719</code></pre>
@@ -242,41 +264,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="goal-2-credit-over-limit-prediction" class="level3" data-number="2.2">
 <h3 data-number="2.2" class="anchored" data-anchor-id="goal-2-credit-over-limit-prediction"><span class="header-section-number">2.2</span> Goal 2: Credit Over Limit Prediction</h3>
 <p>During the EDA it was noted that some credit cards are over balance limit for the current month <a href="#fig-over-limit">Figure&nbsp;2</a>. Therefore, as an additional benefit, the construction of a model aiming to predict whether the current month’s credit balance will exceed the limit for a specific credit card offers valuable advantages. This model can serve to proactively issue warnings to credit card holders, providing them with timely alerts. Simultaneously, it enables the company to assess and manage internal capital risks more effectively by anticipating and addressing potential over-limit situations before they occur.</p>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="21">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig_balance, ax_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_BALANCE"</span>]</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>]</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>x_bal <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">900000</span>)</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>sns.lineplot(</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>x_bal,</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>x_bal,</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"Balance = Limit"</span>,</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"black"</span>,</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>ax_balance.xaxis.set_major_formatter(</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>ax_balance.yaxis.set_major_formatter(</span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig_balance, ax_balance <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_BALANCE"</span>]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>credit_card_balance.<span class="bu">filter</span>(pl.col(<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    .group_by(<span class="st">"SK_ID_CURR"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    .agg(pl.<span class="bu">all</span>().sort_by(<span class="st">"MONTHS_BALANCE"</span>).last())</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    .sort(<span class="st">"SK_ID_CURR"</span>)[<span class="st">"AMT_CREDIT_LIMIT_ACTUAL"</span>]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    .sample(<span class="dv">1000</span>, seed<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>x_bal <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">900000</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>sns.lineplot(</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>x_bal,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>x_bal,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span><span class="st">"Balance = Limit"</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    linestyle<span class="op">=</span><span class="st">"--"</span>,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"black"</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax_balance,</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>ax_balance.xaxis.set_major_formatter(</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>ax_balance.yaxis.set_major_formatter(</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    ticker.FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="st">"{:,.0f}"</span>.<span class="bu">format</span>(x <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="st">"K"</span>)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-over-limit" class="quarto-figure quarto-figure-center anchored">
@@ -291,26 +313,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 data-number="2.2.1" class="anchored" data-anchor-id="success-criteria-1"><span class="header-section-number">2.2.1</span> Success Criteria</h4>
 <p>Given the absence of existing methods for predicting credits over the limit, the success criteria for the new model will be grounded in the F-1 Score of a dummy classifier. This serves as a pragmatic benchmark for evaluating the model’s performance in comparison to a simple baseline approach.</p>
 <p><strong>Calculating the base-line F-1 score:</strong></p>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="22">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dummy_credit <span class="op">=</span> DummyClassifier(strategy<span class="op">=</span><span class="st">"stratified"</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Success F-1 Score:"</span>,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                dummy_credit,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                credit_data.drop(columns<span class="op">=</span><span class="st">"IS_OVER_LIMIT"</span>),</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                credit_data[<span class="st">"IS_OVER_LIMIT"</span>],</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"f1"</span>,</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dummy_credit <span class="op">=</span> DummyClassifier(strategy<span class="op">=</span><span class="st">"stratified"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Success F-1 Score:"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">round</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        np.array(</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            cross_val_score(</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                dummy_credit,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                credit_data.drop(columns<span class="op">=</span><span class="st">"IS_OVER_LIMIT"</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                credit_data[<span class="st">"IS_OVER_LIMIT"</span>],</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                scoring<span class="op">=</span><span class="st">"f1"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        ).mean(),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Success F-1 Score: 0.136</code></pre>
+<pre><code>Success F-1 Score: 0.13</code></pre>
 </div>
 </div>
 </section>
@@ -318,45 +340,45 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="goal-3-consumer-loan-fees-prediction" class="level3" data-number="2.3">
 <h3 data-number="2.3" class="anchored" data-anchor-id="goal-3-consumer-loan-fees-prediction"><span class="header-section-number">2.3</span> Goal 3: Consumer Loan Fees Prediction</h3>
 <p>During the EDA it was discovered that different loans come with different fees for the consumer that involve a composite of interest rate and additional fees (<a href="#fig-fees">Figure&nbsp;3</a>). The third model in this project focuses on determining the proportion of these fees specifically for consumer loans, based on the data in the previous application table.</p>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="23">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> previous_application.<span class="bu">filter</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">"NAME_CONTRACT_TYPE"</span>) <span class="op">==</span> <span class="st">"Consumer loans"</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">&amp;</span> (pl.col(<span class="st">"NAME_CONTRACT_STATUS"</span>) <span class="op">==</span> <span class="st">"Approved"</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Irrelevant cols</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.drop(</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>[<span class="st">"NAME_YIELD_GROUP"</span>, <span class="st">"NAME_CONTRACT_STATUS"</span>, <span class="st">"NAME_CONTRACT_TYPE"</span>]</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    ((pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))).alias(</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FEES_AMT"</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    (</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        (pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">/</span> pl.col(<span class="st">"AMT_CREDIT"</span>)</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    ).alias(<span class="st">"FEES_PERCENT"</span>)</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>consumer_loans<span class="op">=</span>consumer_loans.drop_nulls(<span class="st">"FEES_PERCENT"</span>)</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>fig_fees, ax_fees <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_PERCENT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">0</span>])</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].set_ylabel(<span class="st">"Percentage of Fees"</span>)</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].yaxis.set_major_formatter(ticker.PercentFormatter())</span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_AMT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">1</span>])</span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_yscale(<span class="st">"log"</span>)</span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_ylabel(<span class="st">"Amount of Fees"</span>)</span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> previous_application.<span class="bu">filter</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    (pl.col(<span class="st">"NAME_CONTRACT_TYPE"</span>) <span class="op">==</span> <span class="st">"Consumer loans"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">&amp;</span> (pl.col(<span class="st">"NAME_CONTRACT_STATUS"</span>) <span class="op">==</span> <span class="st">"Approved"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Irrelevant cols</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.drop(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>[<span class="st">"NAME_YIELD_GROUP"</span>, <span class="st">"NAME_CONTRACT_STATUS"</span>, <span class="st">"NAME_CONTRACT_TYPE"</span>]</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    ((pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))).alias(</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"FEES_AMT"</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>consumer_loans <span class="op">=</span> consumer_loans.with_columns(</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    (</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        (pl.col(<span class="st">"AMT_ANNUITY"</span>) <span class="op">*</span> pl.col(<span class="st">"CNT_PAYMENT"</span>) <span class="op">-</span> pl.col(<span class="st">"AMT_CREDIT"</span>))</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">/</span> pl.col(<span class="st">"AMT_CREDIT"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    ).alias(<span class="st">"FEES_PERCENT"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>consumer_loans<span class="op">=</span>consumer_loans.drop_nulls(<span class="st">"FEES_PERCENT"</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>fig_fees, ax_fees <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_PERCENT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">0</span>])</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].set_ylabel(<span class="st">"Percentage of Fees"</span>)</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">0</span>].yaxis.set_major_formatter(ticker.PercentFormatter())</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>sns.boxplot(consumer_loans[<span class="st">"FEES_AMT"</span>], ax<span class="op">=</span>ax_fees[<span class="dv">1</span>])</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_yscale(<span class="st">"log"</span>)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>ax_fees[<span class="dv">1</span>].set_ylabel(<span class="st">"Amount of Fees"</span>)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-fees" class="quarto-figure quarto-figure-center anchored">
@@ -370,25 +392,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="success-criteria-2" class="level4" data-number="2.3.1">
 <h4 data-number="2.3.1" class="anchored" data-anchor-id="success-criteria-2"><span class="header-section-number">2.3.1</span> Success Criteria</h4>
 <p>Given that the model is intended to serve as a suggestive tool for loan profitability and fee determination, the success criteria will be established based on a baseline. Since there is currently no specific information on how to determine these fees, the baseline will be determined by the RMSE (Root Mean Square Error) from either the overall median or mean of fees, depending on which yields a more favorable result. This approach provides a practical benchmark for assessing the model’s performance in the absence of a predefined fee determination method.</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="24">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>rmse_mean_fees <span class="op">=</span> mean_squared_error(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).mean().alias(<span class="st">"mean"</span>))[<span class="st">"mean"</span>],</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>rmse_median_fees <span class="op">=</span> mean_squared_error(</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).median().alias(<span class="st">"median"</span>))[</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    ],</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Median Fee:"</span>, <span class="bu">round</span>(rmse_median_fees,<span class="dv">2</span>))</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Mean Fee:"</span>, <span class="bu">round</span>(rmse_mean_fees,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rmse_mean_fees <span class="op">=</span> mean_squared_error(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).mean().alias(<span class="st">"mean"</span>))[<span class="st">"mean"</span>],</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>rmse_median_fees <span class="op">=</span> mean_squared_error(</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    consumer_loans[<span class="st">"FEES_PERCENT"</span>],</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    consumer_loans.with_columns(pl.col(<span class="st">"FEES_PERCENT"</span>).median().alias(<span class="st">"median"</span>))[</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"median"</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    ],</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    squared<span class="op">=</span><span class="va">False</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Median Fee:"</span>, <span class="bu">round</span>(rmse_median_fees,<span class="dv">2</span>))</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"RMSE from Mean Fee:"</span>, <span class="bu">round</span>(rmse_mean_fees,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>RMSE from Median Fee: 13.16
@@ -416,13 +438,13 @@ RMSE from Mean Fee: 13.06</code></pre>
 <p></p><figcaption class="figure-caption">Figure&nbsp;4: Database schema.</figcaption><p></p>
 </figure>
 </div>
-<div class="cell" data-execution_count="8">
+<div class="cell" data-execution_count="25">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>initial_test<span class="op">=</span>joblib.load(<span class="st">'summary_data/initial_test.joblib'</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>eda.table_display(initial_test[<span class="st">"features"</span>][:<span class="dv">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>initial_test<span class="op">=</span>joblib.load(<span class="st">'summary_data/initial_test.joblib'</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>eda.table_display(initial_test[<span class="st">"features"</span>][:<span class="dv">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="25">
 <div id="tbl-initial_features" class="anchored">
 <table class="table table-sm table-striped small">
 <caption>Table&nbsp;1: Ten most important features based on a quick scan with catboost.</caption>
@@ -622,18 +644,18 @@ RMSE from Mean Fee: 13.06</code></pre>
 <h4 data-number="5.1.4" class="anchored" data-anchor-id="hyperparameter-tuning-and-model-selection"><span class="header-section-number">5.1.4</span> Hyperparameter Tuning and Model Selection</h4>
 <p>Hyperparameter tuning was executed with the Ray-Tune library using the Optuna algorithm. The primary metric for tuning was ROC-AUC, evaluated with up to 5 stratified k-fold cross-validations for each promising trial. The full training set was utilized for this process, with the exception of the RGF model, where a subsample of 100,000 was employed.</p>
 <p>The models’ performance was evaluated alongside a stacked model incorporating all three models (<a href="#fig-model1-selection">Figure&nbsp;5</a>). The Regularized Greedy Forest (RGF) model demonstrated the most success, attributed to its superior performance and stability.</p>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="26">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span><span class="pp">UserWarning</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> joblib.load(<span class="st">"temp/model_1_base_scores.joblib"</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>stacked_model_scores <span class="op">=</span> joblib.load(<span class="st">"temp/stack_scores.joblib"</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> scores.with_columns(pl.Series(stacked_model_scores).alias(<span class="st">"Stacked Model"</span>))</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>fig_scores_full, ax_scores_full <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>sns.boxplot(scores, ax<span class="op">=</span>ax_scores_full)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>ax_scores_full.set_xticklabels(scores.columns)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>ax_scores_full.set_ylabel(<span class="st">"ROC-AUC Score"</span>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span><span class="pp">UserWarning</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> joblib.load(<span class="st">"temp/model_1_base_scores.joblib"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>stacked_model_scores <span class="op">=</span> joblib.load(<span class="st">"temp/stack_scores.joblib"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> scores.with_columns(pl.Series(stacked_model_scores).alias(<span class="st">"Stacked Model"</span>))</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>fig_scores_full, ax_scores_full <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>sns.boxplot(scores, ax<span class="op">=</span>ax_scores_full)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ax_scores_full.set_xticklabels(scores.columns)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>ax_scores_full.set_ylabel(<span class="st">"ROC-AUC Score"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-model1-selection" class="quarto-figure quarto-figure-center anchored">
@@ -668,16 +690,16 @@ RMSE from Mean Fee: 13.06</code></pre>
 <li><p><strong>Sum of Current Debt:</strong> Total current debt is an influential predictor.</p></li>
 </ol>
 <p>Additionally, SHAP value analysis for a subset highlighted the importance of when the applicant last changed their ID and the type of organization where the client works and the count of active credits from the credit bureau.</p>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="27">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>shap_model1<span class="op">=</span>joblib.load(<span class="st">"summary_data/shap_model1.joblib"</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>shap.summary_plot(</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    shap_model1[<span class="st">'shap_vales'</span>][:, :, <span class="dv">1</span>],</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    shap_model1[<span class="st">'sample_data'</span>].to_numpy(),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    feature_names<span class="op">=</span>shap_model1[<span class="st">'names'</span>],</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    max_display<span class="op">=</span><span class="dv">15</span>,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>shap_model1<span class="op">=</span>joblib.load(<span class="st">"summary_data/shap_model1.joblib"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>shap.summary_plot(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    shap_model1[<span class="st">'shap_vales'</span>][:, :, <span class="dv">1</span>],</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    shap_model1[<span class="st">'sample_data'</span>].to_numpy(),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    feature_names<span class="op">=</span>shap_model1[<span class="st">'names'</span>],</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    max_display<span class="op">=</span><span class="dv">15</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-model1-shap" class="quarto-figure quarto-figure-center anchored">
@@ -717,26 +739,26 @@ RMSE from Mean Fee: 13.06</code></pre>
 <section id="model-testing-1" class="level4" data-number="5.3.4">
 <h4 data-number="5.3.4" class="anchored" data-anchor-id="model-testing-1"><span class="header-section-number">5.3.4</span> Model Testing</h4>
 <p>The model achieved an F1-Score of 0.63 greatly beating our previously set base line and success criteria of 0.128. The model performed better at identifying the majority class (credit card balance within limits) as seen in <a href="#fig-confusion-credit">Figure&nbsp;7</a>.</p>
-<div class="cell" data-execution_count="11">
+<div class="cell" data-execution_count="28">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>confusion <span class="op">=</span> joblib.load(<span class="st">"summary_data/model2_confusion.joblib"</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>class_labels <span class="op">=</span> [<span class="st">"Within Limits"</span>, <span class="st">"Over-Limit"</span>]</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    confusion,</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">".1%"</span>,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"Blues"</span>,</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    linewidths<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    cbar<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    xticklabels<span class="op">=</span>class_labels,</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    yticklabels<span class="op">=</span>class_labels,</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Predicted Labels"</span>)</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"True Labels"</span>)</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>confusion <span class="op">=</span> joblib.load(<span class="st">"summary_data/model2_confusion.joblib"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>class_labels <span class="op">=</span> [<span class="st">"Within Limits"</span>, <span class="st">"Over-Limit"</span>]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    confusion,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">".1%"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">"Blues"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    linewidths<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    cbar<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    xticklabels<span class="op">=</span>class_labels,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    yticklabels<span class="op">=</span>class_labels,</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Predicted Labels"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"True Labels"</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-confusion-credit" class="quarto-figure quarto-figure-center anchored">
@@ -759,19 +781,19 @@ RMSE from Mean Fee: 13.06</code></pre>
 <li><p><strong>Income:</strong> Larger incomes were associated with better financial discipline.</p></li>
 <li><p><strong>Amount Annuity:</strong> Values for annuity had non-obvious directional trends, possibly contributing as a conditional feature.</p></li>
 </ol>
-<div class="cell" data-execution_count="15">
+<div class="cell" data-execution_count="29">
 <details>
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model2_shap<span class="op">=</span>joblib.load(</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"summary_data/shap_model2.joblib"</span>,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>shap.summary_plot(</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">"shap_vales"</span>],</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">'sample_data'</span>].to_numpy(),</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    feature_names<span class="op">=</span>model2_shap[<span class="st">"names"</span>],</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    max_display<span class="op">=</span><span class="dv">10</span>,</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model2_shap<span class="op">=</span>joblib.load(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"summary_data/shap_model2.joblib"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>shap.summary_plot(</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">"shap_vales"</span>],</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    model2_shap[<span class="st">'sample_data'</span>].to_numpy(),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    feature_names<span class="op">=</span>model2_shap[<span class="st">"names"</span>],</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    max_display<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-model2-shap" class="quarto-figure quarto-figure-center anchored">
@@ -783,6 +805,99 @@ RMSE from Mean Fee: 13.06</code></pre>
 </div>
 </div>
 </section>
+</section>
+<section id="model-3-consumer-loan-fee-prediction" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="model-3-consumer-loan-fee-prediction"><span class="header-section-number">5.4</span> Model 3: Consumer Loan Fee Prediction</h3>
+<p>The notebook for this section can be found as model_3_consumer_loan_fee.ipynb</p>
+<p>Considering that the consumer loan fee prediction model is intended for eventual use in price determination, interpretability and transparency were prioritized alongside accuracy. Consequently, only the simplest models—linear regression with either ridge or lasso regularization and a decision tree—were tested.</p>
+<section id="preprocessing-pipelines" class="level4" data-number="5.4.1">
+<h4 data-number="5.4.1" class="anchored" data-anchor-id="preprocessing-pipelines"><span class="header-section-number">5.4.1</span> Preprocessing Pipelines</h4>
+<p>The preprocessing pipeline for the linear models included:</p>
+<ol type="1">
+<li>Pooling classes in categorical features with fewer than 300 samples into the “Other” class.</li>
+<li>One-hot encoding of categorical features.</li>
+<li>Imputation of missing values in numeric features (Down payment and insurance) as 0, based on common sense.</li>
+<li>Standard scaling.</li>
+</ol>
+<p>For the decision tree model, the preprocessing pipeline differed:</p>
+<ol type="1">
+<li>Label encoding with the order of the labels set by the target mean was used instead of one-hot encoding.</li>
+<li>The scaler was omitted.</li>
+</ol>
+</section>
+<section id="hyperparameter-tuning-1" class="level4" data-number="5.4.2">
+<h4 data-number="5.4.2" class="anchored" data-anchor-id="hyperparameter-tuning-1"><span class="header-section-number">5.4.2</span> Hyperparameter Tuning</h4>
+<p>With only 18 features initially, no feature removal step was conducted. Instead, the tuning focused on the regularization parameters for the linear models and the decision tree’s depth and minimum samples for a leaf split to counteract overfitting. Hyperparameter tuning was executed using the Ray-Tune library with the Optuna algorithm. The models with specific parameter sets were validated through 5-fold cross-validation, utilizing RMSE as the evaluation metric.</p>
+</section>
+<section id="model-selection-and-testing" class="level4" data-number="5.4.3">
+<h4 data-number="5.4.3" class="anchored" data-anchor-id="model-selection-and-testing"><span class="header-section-number">5.4.3</span> Model Selection and Testing</h4>
+<p>The decision tree significantly outperformed the linear models, as evident in <a href="#fig-fee-compare">Figure&nbsp;9</a>. This discrepancy is likely attributed to the non-parametric distribution of the data and the presence of conditional factors. A more detailed analysis of each feature and appropriate transformations to make them more suitable for linear models could potentially enhance the results. Further investigation into feature engineering and transformation strategies may be beneficial for improving the performance of linear models in this context.</p>
+<div class="cell" data-execution_count="30">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig_rmse_all,ax_rmse_all<span class="op">=</span>plt.subplots(figsize<span class="op">=</span>BASE_FIG_SIZE)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>rmse_all<span class="op">=</span>joblib.load(<span class="st">"summary_data/rmse_model3.joblib"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>sns.boxplot(rmse_all,ax<span class="op">=</span>ax_rmse_all)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>ax_rmse_all.set_xticklabels(rmse_all.columns)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>ax_rmse_all.set_ylabel(<span class="st">"RMSE"</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-fee-compare" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_files/figure-html/fig-fee-compare-output-1.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;9: The comparison of RMSE from five K-fold cross-validations on linear regression and decision tree models.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The decision tree model achieved an RMSE value of 5.70, surpassing our baseline of 13.06. The model exhibited consistent performance across the target value spectrum, as depicted in <a href="#fig-residual-plot">Figure&nbsp;10</a>, and the mean of the residuals was approximately 0. This indicates that the model performed well in predicting loan fees and produced residuals with a balanced distribution around zero.</p>
+<div id="fig-residual-plot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_data/error_plot.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;10: Left: predicted vs.&nbsp;true values. Right: The dependance of residuals on the predicted value.</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="feature-importance-1" class="level4" data-number="5.4.4">
+<h4 data-number="5.4.4" class="anchored" data-anchor-id="feature-importance-1"><span class="header-section-number">5.4.4</span> Feature Importance</h4>
+<p>The feature importance was assessed using SHAP value analysis (<a href="#fig-model3-shap">Figure&nbsp;11</a>). The analysis revealed that the model bases its decisions primarily on:</p>
+<ol type="1">
+<li>The term of the loan.</li>
+<li>The loan amount.</li>
+<li>The nature of the product for which the consumer loan is intended.</li>
+<li>The down payment.</li>
+<li>The location and characteristics of the seller.</li>
+</ol>
+<div id="fig-model3-shap" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="summary_data/shap_model3.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure&nbsp;11: Shap value analysis of the ten most valuable features in the consumer loan prediction model.</figcaption><p></p>
+</figure>
+</div>
+</section>
+</section>
+</section>
+<section id="deployment" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="deployment"><span class="header-section-number">6</span> Deployment</h2>
+<p>For the deployment demonstration, the third model utilized FastAPI with Pydantic for the backend. The backend was containerized with Docker and uploaded to Google Cloud Artifacts. It is deployed <a href="https://fee-prediction-backend-ubfu2xlf7q-oe.a.run.app/">here</a>.</p>
+<p>The front end was developed using Streamlit, containerized, and uploaded to Google Cloud Run. The app can be accessed <a href="https://frontend-ubfu2xlf7q-oe.a.run.app/">here</a>.</p>
+</section>
+<section id="conclusions" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="conclusions"><span class="header-section-number">7</span> Conclusions</h2>
+<ul>
+<li>The company can effectively employ machine learning algorithms, even without external source data, to predict credit default risk with satisfactory accuracy.</li>
+<li>A predictive model for assessing whether a credit card will exceed its limit can be developed, offering a means to issue warnings to cardholders and evaluate internal financial risks for the company.</li>
+<li>A Decision Tree model, with further enhancements, holds potential for automatically generating consumer loan prices.</li>
+</ul>
+<section id="further-improvements" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="further-improvements"><span class="header-section-number">7.1</span> Further Improvements</h3>
+<ul>
+<li>Generate additional features for the credit default risk model using deep learning to capture complex patterns and relationships from different data sources.</li>
+<li>Perform an additional hyperparameter tuning cycle specifically for the credit default risk model after removing external source data.</li>
+<li>Conduct a detailed analysis of the model’s performance on different segments of the data to identify potential areas for improvement.</li>
+<li>Evaluate the pricing of loans considering potential losses in the event of credit default, and fine-tune the decision threshold based on business metrics.</li>
+</ul>
 </section>
 </section>
 
