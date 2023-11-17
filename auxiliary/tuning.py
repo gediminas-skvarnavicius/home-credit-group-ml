@@ -27,33 +27,35 @@ def objective(
     """
     Objective function for hyperparameter tuning.
 
-    Args:
-    pipeline (Pipeline): The machine learning pipeline to be configured and
-    evaluated.
-    params (dict): Hyperparameter configuration for the pipeline.
-    X_train (pl.DataFrame): Training data features as a Polars DataFrame.
-    y_train (pl.Series): Training data labels as a Polars Series.
-    X_val (pl.DataFrame): Validation data features as a Polars DataFrame.
-    y_val (pl.Series): Validation data labels as a Polars Series.
-    n (int): The current iteration number.
-    metric (str, optional): The metric for scoring.
+    Parameters:
+    - pipeline (Pipeline): The machine learning pipeline to be evaluated.
+    - params (dict): Hyperparameter configuration for the pipeline.
+    - X_train (pl.DataFrame): Training data features as a Polars DataFrame.
+    - y_train (pl.Series): Training data labels as a Polars Series.
+    - X_val (pl.DataFrame): Validation data features as a Polars DataFrame.
+    - y_val (pl.Series): Validation data labels as a Polars Series.
+    - n (int): The current iteration number.
+    - metric (str, optional): The metric for scoring. Supported metrics:
+    "roc_auc", "f1", "rmse".
 
     Returns:
-    float: The F1 score (or negative mean squared error if metric is "mse")
-    as the objective to be optimized.
+    - float: The score based on the specified metric.
     """
     pipeline.set_params(**params)
     pipeline.fit(X_train, y_train)
+
     if metric == "roc_auc":
         preds = pipeline.predict_proba(X_val)[:, 1]
         score = roc_auc_score(y_val, preds)
-    else:
+    elif metric == "f1":
         preds = pipeline.predict(X_val)
-    if metric == "f1":
         score = f1_score(y_val, preds)
-
-    if metric == "rmse":
+    elif metric == "rmse":
+        preds = pipeline.predict(X_val)
         score = -mean_squared_error(y_val, preds, squared=False)
+    else:
+        raise ValueError(f"Unsupported metric: {metric}")
+
     print(f"Step {n} Score: {score}")
     return score
 
@@ -107,13 +109,13 @@ class TrainableCV(tune.Trainable):
         y_train: Training data labels.
         sample_size (Union[int, str], optional): The sample size for data
         splitting.
+        n_splits: The number of splits for cross-validation.
 
         metric (str, optional): The metric used for scoring.
 
         stratify (bool, optional): Whether to stratify data splitting.
         Default is True.
         """
-        # config (dict): A dict of hyperparameters
         self.x = 0
         self.params = config
         self.pipeline = pipeline
@@ -130,11 +132,18 @@ class TrainableCV(tune.Trainable):
 
         self.fold_indices = []
         if not sample_size:
-            for train_index, test_index in self.splitter.split(X_train, y_train):
+            for train_index, test_index in self.splitter.split(
+                X_train,
+                y_train,
+            ):
                 self.fold_indices.append((train_index, test_index))
         else:
             for train_index, test_index in self.splitter.split(
-                X_train.sample(sample_size, seed=1), y_train.sample(sample_size, seed=1)
+                X_train.sample(sample_size, seed=1),
+                y_train.sample(
+                    sample_size,
+                    seed=1,
+                ),
             ):
                 self.fold_indices.append((train_index, test_index))
 
@@ -315,7 +324,24 @@ class Models:
             self.best_params = results.get_best_result().config
             self.pipeline.set_params(**self.best_params)
 
-        def cross_val_roc_auc(self, X, y, n: int = 5, n_jobs: int = -1):
+        def cross_val_roc_auc(
+            self, X: pl.DataFrame, y: pl.Series, n: int = 5, n_jobs: int = -1
+        ) -> np.ndarray:
+            """
+            Perform parallelized cross-validation using ROC AUC as the
+            evaluation metric.
+
+            Parameters:
+            - X (pl.DataFrame): The input features as a Polars DataFrame.
+            - y (pl.Series): The target variable as a Polars Series.
+            - n (int, optional): Number of folds for cross-validation.
+            - n_jobs (int, optional): Number of parallel jobs. Default is -1,
+            which means using all available CPUs.
+
+            Returns:
+            - np.ndarray: Array of ROC AUC scores for each fold.
+            """
+
             def process_fold(train_index, test_index, X, y, pipeline):
                 pipeline.fit(X[train_index], y[train_index])
                 return roc_auc_score(
@@ -326,13 +352,36 @@ class Models:
             parallel = Parallel(n_jobs=n_jobs)
 
             scores = parallel(
-                delayed(process_fold)(train_index, test_index, X, y, self.pipeline)
+                delayed(process_fold)(
+                    train_index,
+                    test_index,
+                    X,
+                    y,
+                    self.pipeline,
+                )
                 for train_index, test_index in cv.split(X, y)
             )
 
             return scores
 
-        def cross_val_mse(self, X, y, n: int = 5, **kwargs):
+        def cross_val_mse(
+            self, X: pl.DataFrame, y: pl.Series, n: int = 5, **kwargs
+        ) -> list:
+            """
+            Perform cross-validation using mean squared error (MSE) as the
+            evaluation metric.
+
+            Parameters:
+            - X (pl.DataFrame): The input features as a Polars DataFrame.
+            - y (pl.Series): The target variable as a Polars Series.
+            - n (int, optional): Number of folds for cross-validation.
+            Default is 5.
+            - **kwargs: Additional keyword arguments to be passed to
+            `mean_squared_error`.
+
+            Returns:
+            - list: Array of MSE scores for each fold.
+            """
             cv = KFold(n)
             scores = []
             for train_index, test_index in cv.split(X, y):

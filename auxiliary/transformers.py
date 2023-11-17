@@ -490,14 +490,37 @@ class FeatureRemover(BaseEstimator, TransformerMixin):
 
 
 class NumDiffFromRestImputer(BaseEstimator, TransformerMixin):
-    def __init__(self, coef: float = 1) -> None:
+    def __init__(self, coef: float = 1.0) -> None:
+        """
+        Imputer that fills missing numeric values based on the
+        relationship with the target variable.
+
+        Parameters:
+        - coef (float, optional): Coefficient to determine the fill value.
+        Default is 1.0.
+        """
         self.coef = coef
 
-    def fit(self, X: pl.Series, y: pl.Series):
+    def fit(self, X: pl.Series, y: pl.Series) -> "NumDiffFromRestImputer":
+        """
+        Fit the imputer on the input data.
+
+        Parameters:
+        - X (pl.Series): The feature column with missing values.
+        - y (pl.Series): The target variable.
+
+        Returns:
+        - NumDiffFromRestImputer: The fitted imputer.
+        """
         if X.is_null().any():
             self.null_mean = y.filter(X.is_null()).mean()
             self.not_null_mean = y.filter(X.is_not_null()).mean()
-            self.corr = pl.DataFrame([X, y]).select(pl.corr(X.name, y.name))[0, 0]
+            self.corr = pl.DataFrame([X, y]).select(
+                pl.corr(
+                    X.name,
+                    y.name,
+                )
+            )[0, 0]
             self.x_min = X.min()
             self.x_max = X.max()
 
@@ -521,11 +544,21 @@ class NumDiffFromRestImputer(BaseEstimator, TransformerMixin):
                         self.fill_val = np.abs(self.x_min - self.coef * self.x_min) + 1
         return self
 
-    def transform(self, X: pl.Series, y=None):
+    def transform(self, X: pl.Series, y=None) -> pl.Series:
+        """
+        Transform the input data by filling missing values.
+
+        Parameters:
+        - X (pl.Series): The feature column with missing values.
+        - y: Ignored.
+
+        Returns:
+        - pl.Series: The transformed feature column.
+        """
         if hasattr(self, "fill_val"):
             X = X.fill_null(pl.lit(self.fill_val))
         else:
-            X = X.fill_null(pl.lit(X.min() - np.abs(X.min())))
+            X = X.fill_null(pl.lit(X.min() - np.abs(X.min()) - 1))
         return X
 
 

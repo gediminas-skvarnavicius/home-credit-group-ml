@@ -9,12 +9,26 @@ from multiprocessing import get_context
 import networkx
 
 
-def get_correlation(data, combo):
+def get_correlation(data: pl.DataFrame, combo: tuple) -> float:
+    """
+    Calculates the Spearman correlation between two columns
+    in a Polars DataFrame.
+
+    Parameters:
+    - data (pl.DataFrame): The input DataFrame.
+    - combo (tuple): A tuple containing two column names
+    for which to calculate the correlation.
+
+    Returns:
+    - float: The Spearman correlation coefficient between
+    the specified columns.
+    """
     corr = data.select(
         pl.corr(combo[0], combo[1], method="spearman"),
     ).to_numpy()[
         0
     ][0]
+
     return corr
 
 
@@ -70,7 +84,18 @@ def get_correlation_pairs(
     return results
 
 
-def calc_vif(X):
+def calc_vif(X: pl.DataFrame) -> pl.DataFrame:
+    """
+    Calculates the Variance Inflation Factor (VIF)
+    for each variable in a DataFrame.
+
+    Parameters:
+    - X (pl.DataFrame): The input DataFrame.
+
+    Returns:
+    - pl.DataFrame: A DataFrame containing the calculated VIF
+    values for each variable, sorted in descending order.
+    """
     # Calculating VIF
     vif = pl.DataFrame()
     vif = vif.with_columns(pl.Series(X.columns).alias("variables"))
@@ -171,12 +196,6 @@ def chi_squared_polars(
         )
 
     contingency_table = contingency_table.drop(columns=["count", var_col])
-    # null_cols = [
-    #     col
-    #     for col in contingency_table.columns
-    #     if contingency_table[col].null_count() > 0
-    # ]
-    # contingency_table = contingency_table.drop(columns=null_cols)
     contingency_table = contingency_table.drop_nulls()
     test = stats.chi2_contingency(contingency_table)
 
