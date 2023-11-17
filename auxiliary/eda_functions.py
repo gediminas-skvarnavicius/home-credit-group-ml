@@ -5,18 +5,37 @@ from sklearn.model_selection import StratifiedKFold
 from IPython.display import Markdown
 from tabulate import tabulate
 import numpy as np
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Dict, Optional
 import matplotlib.pyplot as plt
 
 
 def test_with_catboost_crossval(
     X: pl.DataFrame,
     y: pl.Series,
-    cat_features=None,
-    sample_size=None,
-    kfolds: int = None,
-):
-    # Wether to sample
+    cat_features: Optional[List[str]] = None,
+    sample_size: Optional[int] = None,
+    kfolds: Optional[int] = None,
+) -> Dict[str, Union[List[float], pl.DataFrame]]:
+    """
+    Performs quick fit of raw data with CatBoost to get an initial idea of the
+    most important features.
+
+    Parameters:
+    - X (pl.DataFrame): The input data.
+    - y (pl.Series): The target variable.
+    - cat_features (List[str], optional): List of categorical features. If not
+    provided, all columns of type Utf8 are considered categorical.
+    - sample_size (int, optional): If provided, the function will
+    sample the data with the specified size.
+    - kfolds (int, optional): Number of folds for cross-validation.
+    If provided, the function will perform cross-validation.
+
+    Returns:
+    - Dict[str, Union[List[float], pl.DataFrame]]: Dictionary containing
+    'scores' (list of AUC-ROC scores) and
+    'features' (DataFrame of feature importances).
+    """
+    # Whether to sample
     if sample_size:
         X = X.sample(sample_size, shuffle=True, seed=1)
         y = y.sample(sample_size, shuffle=True, seed=1)
@@ -35,7 +54,6 @@ def test_with_catboost_crossval(
 
     for col in num_cols:
         X = X.with_columns(pl.col(col).fill_null(-1).alias(col))
-    # Categorical col indices
 
     # Model
     cat = CatBoostClassifier(
@@ -57,7 +75,6 @@ def test_with_catboost_crossval(
 
             # Fitting and evaluation
             cat.fit(X_train.to_numpy(), y_train.to_numpy(), verbose=0)
-            # preds = cat.predict(X_test.to_numpy())
             preds_proba = cat.predict_proba(X_test.to_numpy())[:, 1]
             scores.append(roc_auc_score(y_test, preds_proba))
 
@@ -81,13 +98,31 @@ def test_with_catboost_crossval(
 
 
 def make_aggregations(
-    original_df,
-    df_to_agg,
-    columns,
-    id,
-    aggregations=["mean", "sum", "min", "max", "std", "mode"],
-    join_suffix=None,
-):
+    original_df: pl.DataFrame,
+    df_to_agg: pl.DataFrame,
+    columns: Union[str, list],
+    id: str,
+    aggregations: list = ["mean", "sum", "min", "max", "std", "mode"],
+    join_suffix: str = None,
+) -> pl.DataFrame:
+    """
+    Performs aggregations on specified columns of a DataFrame and joins the
+    result with another DataFrame.
+
+    Parameters:
+    - original_df (pl.DataFrame): The original DataFrame to which aggregated
+    data will be joined.
+    - df_to_agg (pl.DataFrame): The DataFrame containing data to be aggregated.
+    - columns (Union[str, list]): The column(s) to aggregate.
+    - id (str): The column used for grouping and joining.
+    - aggregations (list, optional): List of aggregation functions to apply
+    (default: ["mean", "sum", "min", "max", "std", "mode"]).
+    - join_suffix (str, optional): Suffix to add to the joined columns
+    (default: None).
+
+    Returns:
+    - pl.DataFrame: The original DataFrame with aggregated columns added.
+    """
     for col in columns:
         if "mean" in aggregations:
             original_df = original_df.join(
@@ -140,7 +175,18 @@ def make_aggregations(
     return original_df
 
 
-def missing_values_by_feature(data):
+def missing_values_by_feature(data: pl.DataFrame) -> pl.DataFrame:
+    """
+    Calculates the fraction of missing values for each feature in a
+    DataFrame and returns the results.
+
+    Parameters:
+    - data (pl.DataFrame): The input DataFrame.
+
+    Returns:
+    - pl.DataFrame: A DataFrame containing the fraction of missing values
+    for each feature, sorted in descending order.
+    """
     missing = pl.DataFrame(
         {
             "missing_fraction": data.null_count().transpose().to_series() / len(data),
@@ -150,7 +196,13 @@ def missing_values_by_feature(data):
     return missing
 
 
-def table_display(table: pl.DataFrame):
+def table_display(table: pl.DataFrame) -> None:
+    """
+    Displays a Polars DataFrame as a Markdown table.
+
+    Parameters:
+    - table (pl.DataFrame): The Polars DataFrame to display.
+    """
     return Markdown(
         tabulate(
             table.to_pandas(),
