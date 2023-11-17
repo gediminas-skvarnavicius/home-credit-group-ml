@@ -2,7 +2,7 @@
 # Home Credit Group ML Project
 
 ## Usage
-The main description of the preoject and all it's steps is derived from summary.ipynb and can be viewed [here](https://gediminas-skvarnavicius.github.io/home_credit/) .
+The main description of the project and all it's steps is derived from summary.ipynb and can be viewed [here](https://gediminas-skvarnavicius.github.io/home_credit/) .
 
 ### Contents
 Working notebooks can be found as:
